@@ -252,7 +252,7 @@ FFW.BasicCommunication = FFW.RPCObserver.create( {
         };
 
         if( SDL.SDLModel.sendDataExtend ){
-            JSONMessage.params["url"] = "ftp://ford-applink.luxoft.com";
+            JSONMessage.params["url"] = "http://projects.genivi.org/smartphonelink/";
             JSONMessage.params["timeout"] = 10000;
         }
 
