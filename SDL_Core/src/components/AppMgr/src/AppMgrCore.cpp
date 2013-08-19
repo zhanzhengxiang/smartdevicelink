@@ -6240,11 +6240,11 @@ namespace NsAppManager
                     hmiApp.set_appId(app->getAppID());
                     hmiApp.set_isMediaApplication(app->getIsMediaApplication());
 
-                    std::map<int,DeviceStorage>::const_iterator it = core->mDevices.find( app->getDeviceHandle() );
+                    std::map<int,DeviceStorage>::const_iterator dev = core->mDevices.find( app->getDeviceHandle() );
                     std::string deviceName = "";
-                    if ( core->mDevices.end() != it )
+                    if ( core->mDevices.end() != dev )
                     {
-                        deviceName = it->second.getUserFriendlyName();
+                        deviceName = dev->second.getUserFriendlyName();
                     }
 
                     hmiApp.set_deviceName(deviceName);
@@ -6782,8 +6782,8 @@ namespace NsAppManager
                 application->setApplicationHMIStatusLevel(NsSmartDeviceLinkRPCV2::HMILevel::HMI_NONE);
 
                 mApplications.insert( std::pair<int, Application*>(appId, application) );
-                LOG4CPLUS_INFO_EXT(mLogger, "\n\t\t\t\tAdded application with appid " << appId <<
-                        " to mApplications " << (int)mApplications[appId]);
+                //LOG4CPLUS_INFO_EXT(mLogger, "\n\t\t\t\tAdded application with appid " << appId <<
+                //        " to mApplications " << (int)mApplications[appId]);
                 for( std::map<int, DeviceStorage>::iterator it = mDevices.begin();
                         it != mDevices.end();
                         ++it )
@@ -6850,8 +6850,8 @@ namespace NsAppManager
 
                 LOG4CPLUS_INFO_EXT(mLogger, "Application created." );
                 mApplications.insert( std::pair<int, Application*>(appId, application) );
-                LOG4CPLUS_INFO_EXT(mLogger, "\n\t\t\t\tAdded application with appid " << appId <<
-                        " to mApplications " << (int)mApplications[appId]);
+                //LOG4CPLUS_INFO_EXT(mLogger, "\n\t\t\t\tAdded application with appid " << appId <<
+                //        " to mApplications " << (int)mApplications[appId]);
                 for( std::map<int, DeviceStorage>::iterator it = mDevices.begin();
                         it != mDevices.end();
                         ++it )

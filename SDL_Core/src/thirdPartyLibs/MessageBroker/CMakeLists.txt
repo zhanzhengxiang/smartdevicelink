@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 2.8)
+
 include_directories (
   ./include/
   ../jsoncpp/include
@@ -23,10 +25,12 @@ set (MESSAGE_BROKER_SERVER_SOURCES
   ./src/server/networking.cpp
 )
 
+find_package(OpenSSL REQUIRED)
+
 add_library("MessageBroker" ${MESSAGE_BROKER_SOURCES})
 
 add_library("MessageBrokerClient" ${MESSAGE_BROKER_CLIENT_SOURCES})
 target_link_libraries("MessageBrokerClient" "MessageBroker")
 
 add_library("MessageBrokerServer" ${MESSAGE_BROKER_SERVER_SOURCES})
-target_link_libraries("MessageBrokerServer" "MessageBroker")
+target_link_libraries("MessageBrokerServer" "MessageBroker" ${OPENSSL_LIBRARIES})

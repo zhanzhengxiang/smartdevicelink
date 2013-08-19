@@ -42,7 +42,7 @@
 #define MAX_HASH_VALUE 6
 /* maximum key range = 2, duplicates = 0 */
 
-class AudioCaptureQuality_intHash
+class AudioCaptureQualityV2_intHash
 {
 private:
   static inline unsigned int hash (const char *str, unsigned int len);
@@ -52,13 +52,13 @@ public:
 
 inline /*ARGSUSED*/
 unsigned int
-AudioCaptureQuality_intHash::hash (register const char *str, register unsigned int len)
+AudioCaptureQualityV2_intHash::hash (register const char *str, register unsigned int len)
 {
   return len;
 }
 
 const struct NsSmartDeviceLinkRPCV2::PerfectHashTable *
-AudioCaptureQuality_intHash::getPointer (register const char *str, register unsigned int len)
+AudioCaptureQualityV2_intHash::getPointer (register const char *str, register unsigned int len)
 {
   static const unsigned char lengthtable[] =
     {

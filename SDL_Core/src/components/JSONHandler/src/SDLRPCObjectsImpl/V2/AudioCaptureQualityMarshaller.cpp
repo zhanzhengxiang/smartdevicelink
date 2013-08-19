@@ -52,7 +52,7 @@ const AudioCaptureQuality::AudioCaptureQualityInternal AudioCaptureQualityMarsha
 {
   if(!s)
     return AudioCaptureQuality::INVALID_ENUM;
-  const struct PerfectHashTable* p=AudioCaptureQuality_intHash::getPointer(s,strlen(s));
+  const struct PerfectHashTable* p=AudioCaptureQualityV2_intHash::getPointer(s,strlen(s));
   return p ? static_cast<AudioCaptureQuality::AudioCaptureQualityInternal>(p->idx) : AudioCaptureQuality::INVALID_ENUM;
 }
 

@@ -1,7 +1,7 @@
 %language=C++
 %struct-type
 %define lookup-function-name getPointer
-%define class-name AudioCaptureQuality_intHash
+%define class-name AudioCaptureQualityV2_intHash
 %omit-struct-type
 %readonly-tables
 %compare-strncmp
