@@ -32,7 +32,7 @@
  * @version 1.0
  */
 
-SDL.OptionsView = SDL.SDLAbstractView.create( {
+SDL.OptionsView = SDL.SDLAbstractView.create({
 
     elementId: 'sdl_options',
 
@@ -46,7 +46,7 @@ SDL.OptionsView = SDL.SDLAbstractView.create( {
     // Menu caption text
     captionBinding: 'SDL.SDLAppController.model.currentSubMenuLabel',
 
-    commands: SDL.List.extend( {
+    commands: SDL.List.extend({
 
         elementId: 'info_nonMedia_options_list',
 
@@ -65,34 +65,44 @@ SDL.OptionsView = SDL.SDLAbstractView.create( {
          */
 
         refreshItems: function() {
-            var commands = SDL.SDLAppController.model.get( 'currentCommandsList' ), i, len;
+            var commands = SDL.SDLAppController.model.get('currentCommandsList'), 
+                i, 
+                len,
+                template;
 
             this.items = [];
 
             len = commands.length;
 
-            for( i = 0; i < len; i++ ){
-                this.items.push( {
+            for(i = 0; i < len; i++){
+                
+                if(commands[i].menuID >= 0){
+                    template = 'arrow';
+                }else{
+                    template = commands[i].icon ? 'rightText' : 'text';
+                }
+                
+                this.items.push({
                     type: SDL.Button,
                     params: {
-                        templateName: commands[i].menuId ? 'arrow' : '',
+                        templateName: template,
                         text: commands[i].name,
-                        commandId: commands[i].commandId,
-                        menuId: commands[i].menuId,
+                        commandID: commands[i].commandID,
+                        menuID: commands[i].menuID,
                         icon: commands[i].icon,
                         target: 'SDL.SDLAppController',
                         action: 'onCommand',
                         onDown: false
                     }
-                } )
+                })
             }
 
             this.list.refresh();
 
-        }.observes( 'SDL.SDLAppController.model.currentCommandsList' )
-    } ),
+        }.observes('SDL.SDLAppController.model.currentSubMenuId', 'SDL.SDLAppController.model.currentCommandsList.@each')
+    }),
 
-    activate: function( text ) {
+    activate: function(text) {
         this._super();
 
         SDL.SDLController.onSystemContextChange();
@@ -101,10 +111,10 @@ SDL.OptionsView = SDL.SDLAbstractView.create( {
     // Extend deactivate window
     deactivate: function() {
 
-        if( SDL.SDLAppController.model ){
+        if (SDL.SDLAppController.model) {
 
-            if( SDL.SDLAppController.model.get( 'currentSubMenuId' ) ){
-                SDL.SDLAppController.onSubMenu( 0 );
+            if (SDL.SDLAppController.model.get('currentSubMenuId') >= 0) {
+                SDL.SDLAppController.onSubMenu('top');
             }else{
                 this._super();
                 SDL.SDLController.onSystemContextChange();
@@ -112,4 +122,4 @@ SDL.OptionsView = SDL.SDLAbstractView.create( {
         }
 
     }
-} );
+});

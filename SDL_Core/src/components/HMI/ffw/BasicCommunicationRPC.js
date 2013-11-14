@@ -2,15 +2,14 @@
  * Copyright (c) 2013, Ford Motor Company All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *  · Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
- *  · Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- *  · Neither the name of the Ford Motor Company nor the names of its
- * contributors may be used to endorse or promote products derived from this
- * software without specific prior written permission.
+ * modification, are permitted provided that the following conditions are met: ·
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer. · Redistributions in binary
+ * form must reproduce the above copyright notice, this list of conditions and
+ * the following disclaimer in the documentation and/or other materials provided
+ * with the distribution. · Neither the name of the Ford Motor Company nor the
+ * names of its contributors may be used to endorse or promote products derived
+ * from this software without specific prior written permission.
  * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -31,278 +30,528 @@
  * mobile apps, geting the list of devices and applications and data transfer.
  */
 
-FFW.BasicCommunication = FFW.RPCObserver.create( {
+FFW.BasicCommunication = FFW.RPCObserver
+    .create( {
 
-    /**
-     * access to basic RPC functionality
-     */
-    client: FFW.RPCClient.create( {
-        componentName: "BasicCommunicationClient"
-    } ),
+        /**
+         * access to basic RPC functionality
+         */
+        client: FFW.RPCClient.create( {
+            componentName: "BasicCommunication"
+        }),
 
-    getAppListRequestId: -1,
-    getDeviceListRequestId: -1,
-    activateAppRequestId: -1,
-    onAppRegisteredSubscribeRequestId: -1,
-    onAppUnregisteredSubscribeRequestId: -1,
-    onAppRegisteredUnsubscribeRequestId: -1,
-    onAppUnregisteredUnsubscribeRequestId: -1,
+        onAppRegisteredSubscribeRequestID: -1,
+        onAppUnregisteredSubscribeRequestID: -1,
+        onPlayToneSubscribeRequestID: -1,
 
-    // const
-    onAppRegisteredNotification: "BasicCommunication.OnAppRegistered",
-    onAppUnregisteredNotification: "BasicCommunication.OnAppUnregistered",
-    onDeviceListUpdatedNotification: "BasicCommunication.OnDeviceListUpdated",
+        onAppRegisteredUnsubscribeRequestID: -1,
+        onAppUnregisteredUnsubscribeRequestID: -1,
+        onPlayToneUnsubscribeRequestID: -1,
 
-    /**
-     * init object
-     */
-    init: function() {
-    },
+        // const
+        onAppRegisteredNotification: "BasicCommunication.OnAppRegistered",
+        onAppUnregisteredNotification: "BasicCommunication.OnAppUnregistered",
+        onPlayToneNotification: "BasicCommunication.PlayTone",
 
-    /**
-     * connect to RPC bus
-     */
-    connect: function() {
+        /**
+         * init object
+         */
+        init: function() {
 
-        this.client.connect( this, 600 );
-    },
+        },
 
-    /**
-     * disconnect from RPC bus
-     */
-    disconnect: function() {
-        this.client.disconnect();
-    },
+        /**
+         * connect to RPC bus
+         */
+        connect: function() {
 
-    /**
-     * Client is registered - we can send request starting from this point of
-     * time
-     */
-    onRPCRegistered: function() {
-        Em.Logger.log( "FFW.BasicCommunicationRPC.onRPCRegistered" );
-        this._super();
+            this.client.connect(this, 600); // Magic number is unique identifier
+            // for component
+        },
 
-        // subscribe to notifications
-        this.onAppRegisteredSubscribeRequestId = this.client.subscribeToNotification( this.onAppRegisteredNotification );
-        this.onAppUnregisteredSubscribeRequestId = this.client.subscribeToNotification( this.onAppUnregisteredNotification );
-        this.onDeviceListUpdatedNotificationId = this.client.subscribeToNotification( this.onDeviceListUpdatedNotification );
-    },
+        /**
+         * disconnect from RPC bus
+         */
+        disconnect: function() {
 
-    /**
-     * Client is unregistered - no more requests
-     */
-    onRPCUnregistered: function() {
-        Em.Logger.log( "FFW.BasicCommunicationRPC.onRPCUnregistered" );
-        this._super();
+            this.client.disconnect();
+        },
 
-        // unsubscribe from notifications
-        this.onAppRegusteredUnsubscribeRequestId = this.client.unsubscribeFromNotification( this.onAppRegisteredNotification );
-        this.onAppUnregusteredUnsubscribeRequestId = this.client.unsubscribeFromNotification( this.onAppUnregisteredNotification );
-        this.onDeviceListUpdatedNotificationId = this.client.unsubscribeFromNotification( this.onDeviceListUpdatedNotification );
-    },
+        /**
+         * Client is registered - we can send request starting from this point
+         * of time
+         */
+        onRPCRegistered: function() {
 
-    /**
-     * Client disconnected.
-     */
-    onRPCDisconnected: function() {
-        if( SDL.SDLAppController ){
-            SDL.SDLAppController.onSDLDisconected();
-        }
-    },
+            Em.Logger.log("FFW.BasicCommunicationRPC.onRPCRegistered");
+            this._super();
 
-    /**
-     * when result is received from RPC component this function is called It is
-     * the propriate place to check results of reuqest execution Please use
-     * previously store reuqestID to determine to which request repsonse belongs
-     * to
-     */
-    onRPCResult: function( response ) {
-        Em.Logger.log( "FFW.BasicCommunicationRPC.onRPCResult" );
-        this._super();
+            // subscribe to notifications
+            this.onAppRegisteredSubscribeRequestID = this.client
+                .subscribeToNotification(this.onAppRegisteredNotification);
+            this.onAppUnregisteredSubscribeRequestID = this.client
+                .subscribeToNotification(this.onAppUnregisteredNotification);
+            this.onPlayToneNotificationID = this.client
+                .subscribeToNotification(this.onPlayToneNotification);
 
-        if( response.result.method == "BasicCommunication.GetAppListResponse" ){
-            if( SDL.States.info.active ){
-                SDL.SDLController.onGetAppList( response.result.appList );
+        },
+
+        /**
+         * Client is unregistered - no more requests
+         */
+        onRPCUnregistered: function() {
+
+            Em.Logger.log("FFW.BasicCommunicationRPC.onRPCUnregistered");
+            this._super();
+
+            // unsubscribe from notifications
+            this.onAppRegusteredUnsubscribeRequestID = this.client
+                .unsubscribeFromNotification(this.onAppRegisteredNotification);
+            this.onAppUnregusteredUnsubscribeRequestID = this.client
+                .unsubscribeFromNotification(this.onAppUnregisteredNotification);
+            this.onPlayToneUpdatedNotificationID = this.client
+                .unsubscribeFromNotification(this.onPlayToneUpdatedNotification);
+        },
+
+        /**
+         * Client disconnected.
+         */
+        onRPCDisconnected: function() {
+
+            if (SDL.SDLAppController) {
+                SDL.SDLAppController.onSDLDisconected();
+            }
+        },
+
+        /**
+         * when result is received from RPC component this function is called It
+         * is the propriate place to check results of reuqest execution Please
+         * use previously store reuqestID to determine to which request repsonse
+         * belongs to
+         */
+        onRPCResult: function(response) {
+
+            Em.Logger.log("FFW.BasicCommunicationRPC.onRPCResult");
+            this._super();
+        },
+
+        /**
+         * handle RPC erros here
+         */
+        onRPCError: function(error) {
+
+            Em.Logger.log("FFW.BasicCommunicationRPC.onRPCError");
+            this._super();
+        },
+
+        /**
+         * handle RPC notifications here
+         */
+        onRPCNotification: function(notification) {
+
+            Em.Logger.log("FFW.BasicCommunicationRPC.onRPCNotification");
+            this._super();
+
+            if (notification.method == this.onAppRegisteredNotification) {
+                SDL.SDLModel.onAppRegistered(notification.params.application);
+                this.OnFindApplications();
+            }
+
+            if (notification.method == this.onAppUnregisteredNotification) {
+                // remove app from list
+                SDL.SDLModel.onAppUnregistered(notification.params);
+            }
+
+            if (notification.method == this.onPlayToneNotification) {
+                SDL.SDLModel.onPlayTone();
+            }
+        },
+
+        /**
+         * handle RPC requests here
+         */
+        onRPCRequest: function(request) {
+
+            Em.Logger.log("FFW.BasicCommunicationRPC.onRPCRequest");
+            this._super();
+
+            if (this.validationCheck(request)) {
+
+                if (request.method == "BasicCommunication.MixingAudioSupported") {
+                    this.MixingAudioSupported(true);
+                }
+                if (request.method == "BasicCommunication.AllowAllApps") {
+                    this.AllowAllApps(true);
+                }
+                if (request.method == "BasicCommunication.AllowApp") {
+                    this.AllowApp(true);
+                }
+                if (request.method == "BasicCommunication.AllowDeviceToConnect") {
+                    this
+                        .AllowDeviceToConnect(request.id, request.method, allow);
+                }
+                if (request.method == "BasicCommunication.UpdateAppList") {
+                    if (SDL.States.info.active) {
+                        SDL.SDLController
+                            .onGetAppList(request.params.applications);
+                    }
+                    this.sendBCResult(SDL.SDLModel.resultCode["SUCCESS"],
+                        request.id,
+                        request.method);
+                }
+                if (request.method == "BasicCommunication.UpdateDeviceList") {
+                    SDL.SDLModel.onGetDeviceList(request.params);
+                    this.sendBCResult(SDL.SDLModel.resultCode["SUCCESS"],
+                        request.id,
+                        request.method);
+                }
+            }
+        },
+
+        /**
+         * send response from onRPCRequest
+         * 
+         * @param {Number}
+         *            resultCode
+         * @param {Number}
+         *            id
+         * @param {String}
+         *            method
+         */
+        sendBCResult: function(resultCode, id, method) {
+
+            Em.Logger.log("FFW." + method + "Response");
+
+            if (resultCode === SDL.SDLModel.resultCode["SUCCESS"]) {
+
+                // send repsonse
+                var JSONMessage = {
+                    "jsonrpc": "2.0",
+                    "id": id,
+                    "result": {
+                        "code": resultCode, // type (enum) from SDL protocol
+                        "method": method
+                    }
+                };
+                this.client.send(JSONMessage);
+            }
+        },
+
+        /**
+         * send response from onRPCRequest
+         * 
+         * @param {Number}
+         *            id
+         * @param {String}
+         *            method
+         * @param {Boolean}
+         *            allow
+         */
+        AllowDeviceToConnect: function(id, method, allow) {
+
+            Em.Logger.log("FFW." + method + "Response");
+
+            // send repsonse
+            var JSONMessage = {
+                "jsonrpc": "2.0",
+                "id": id,
+                "result": {
+                    "code": SDL.SDLModel.resultCode["SUCCESS"], // type (enum)
+                    // from SDL
+                    // protocol
+                    "method": method,
+                    "allow": true
+                }
+            };
+            this.client.send(JSONMessage);
+
+        },
+
+        /**
+         * notification that UI is ready BasicCommunication should be sunscribed
+         * to this notification
+         */
+        onReady: function() {
+
+            Em.Logger.log("FFW.BasicCommunication.onReady");
+
+            var JSONMessage = {
+                "jsonrpc": "2.0",
+                "method": "BasicCommunication.OnReady"
+            };
+            this.client.send(JSONMessage);
+        },
+
+        /**
+         * Send request if application was activated
+         * 
+         * @param {String}
+         *            appName
+         */
+        OnAppActivated: function(appID) {
+
+            Em.Logger.log("FFW.BasicCommunication.OnAppActivated");
+
+            // send notification
+            var JSONMessage = {
+                "jsonrpc": "2.0",
+                "method": "BasicCommunication.OnAppActivated",
+                "params": {
+                    "appID": appID
+                }
+            };
+            this.client.send(JSONMessage);
+        },
+
+        /**
+         * This methos is request to get list of registered apps.
+         */
+        OnFindApplications: function() {
+
+            var JSONMessage = {
+                "jsonrpc": "2.0",
+                "method": "BasicCommunication.OnFindApplications"
+            };
+
+            if (SDL.SDLModel.CurrDeviceInfo.name
+                || SDL.SDLModel.CurrDeviceInfo.id) {
+
+                JSONMessage.params = {
+                    "deviceInfo": SDL.SDLModel.CurrDeviceInfo
+                };
+            }
+
+            this.client.send(JSONMessage);
+        },
+
+        /**
+         * Request for list of avaliable devices
+         */
+        getDeviceList: function() {
+
+            this.getDeviceListRequestID = this.client.generateID();
+
+            var JSONMessage = {
+                "id": this.getDeviceListRequestID,
+                "jsonrpc": "2.0",
+                "method": "BasicCommunication.GetDeviceList"
+            };
+            this.client.send(JSONMessage);
+        },
+
+        /**
+         * Invoked by UI component when user switches to any functionality which
+         * is not other mobile application.
+         * 
+         * @params {String}
+         * @params {Number}
+         */
+        OnAppDeactivated: function(reason, appID) {
+
+            Em.Logger.log("FFW.BasicCommunication.OnAppDeactivated");
+
+            // send request
+
+            var JSONMessage = {
+                "jsonrpc": "2.0",
+                "method": "BasicCommunication.OnAppDeactivated",
+                "params": {
+                    "appID": appID,
+                    "reason": reason
+                }
+            };
+            this.client.send(JSONMessage);
+        },
+
+        /**
+         * Initiated by HMI user. In response optional list of found devices -
+         * if not provided, not were found.
+         */
+        OnStartDeviceDiscovery: function() {
+
+            Em.Logger.log("FFW.BasicCommunication.OnStartDeviceDiscovery");
+
+            // send request
+
+            var JSONMessage = {
+                "jsonrpc": "2.0",
+                "method": "BasicCommunication.OnStartDeviceDiscovery"
+            };
+            this.client.send(JSONMessage);
+        },
+
+        /**
+         * Used by HMI when User chooses to exit application.
+         * 
+         * @params {Number}
+         */
+        ExitApplication: function(appID) {
+
+            Em.Logger.log("FFW.BasicCommunication.ExitApplication");
+
+            // send request
+
+            var JSONMessage = {
+                "id": this.client.idStart,
+                "jsonrpc": "2.0",
+                "method": "BasicCommunication.ExitApplication",
+                "params": {
+                    "appID": appID
+                }
+            };
+            this.client.send(JSONMessage);
+        },
+
+        /**
+         * Sent by HMI to SDL to close all registered applications.
+         * 
+         * @params {String}
+         */
+        ExitAllApplications: function(reason) {
+
+            Em.Logger.log("FFW.BasicCommunication.ExitAllApplicationsResponse");
+
+            // send request
+
+            var JSONMessage = {
+                "id": this.getAppListRequestID,
+                "jsonrpc": "2.0",
+                "method": "BasicCommunication.ExitAllApplications",
+                "params": {
+                    "reason": reason
+                }
+            };
+            this.client.send(JSONMessage);
+        },
+
+        /**
+         * Response with params of the last one supports mixing audio (ie
+         * recording TTS command and playing audio).
+         * 
+         * @params {Number}
+         */
+        MixingAudioSupported: function(attenuatedSupported) {
+
+            Em.Logger
+                .log("FFW.BasicCommunication.MixingAudioSupportedResponse");
+
+            // send request
+
+            var JSONMessage = {
+                "id": this.client.idStart,
+                "jsonrpc": "2.0",
+                "result": {
+                    "code": 0,
+                    "attenuatedSupported": attenuatedSupported,
+                    "method": "BasicCommunication.MixingAudioSupported"
+                }
+            };
+            this.client.send(JSONMessage);
+        },
+
+        /**
+         * Response with Results by user/HMI allowing SDL functionality or
+         * disallowing access to all mobile apps.
+         * 
+         * @params {Number}
+         */
+        AllowAllApps: function(allowed) {
+
+            Em.Logger.log("FFW.BasicCommunication.AllowAllAppsResponse");
+
+            // send request
+
+            var JSONMessage = {
+                "id": this.client.idStart,
+                "jsonrpc": "2.0",
+                "result": {
+                    "code": 0,
+                    "method": "BasicCommunication.AllowAllApps",
+                    "allowed": allowed
+                }
+            };
+            this.client.send(JSONMessage);
+        },
+
+        /**
+         * Response with result of allowed application
+         * 
+         * @params {Number}
+         */
+        AllowApp: function(allowed) {
+
+            Em.Logger.log("FFW.BasicCommunication.AllowAppResponse");
+
+            // send request
+
+            var JSONMessage = {
+                "id": this.client.idStart,
+                "jsonrpc": "2.0",
+                "result": {
+                    "code": 0,
+                    "method": "BasicCommunication.AllowApp",
+                    "allowed": allowed
+                }
+            };
+            this.client.send(JSONMessage);
+        },
+
+        /**
+         * Notifies if device was choosed
+         * 
+         * @param {String}
+         *            deviceName
+         * @param {Number}
+         *            appID
+         */
+        OnDeviceChosen: function(deviceName, appID) {
+
+            Em.Logger.log("FFW.UI.OnDeviceChosen");
+
+            // send repsonse
+            var JSONMessage = {
+                "jsonrpc": "2.0",
+                "method": "BasicCommunication.OnDeviceChosen",
+                "params": {
+                    "deviceInfo": {
+                        "name": deviceName,
+                        "id": appID
+                    }
+                }
+            };
+            this.client.send(JSONMessage);
+        },
+
+        /**
+         * Send error response from onRPCRequest
+         * 
+         * @param {Number}
+         *            resultCode
+         * @param {Number}
+         *            id
+         * @param {String}
+         *            method
+         */
+        sendError: function(resultCode, id, method, message) {
+
+            Em.Logger.log("FFW." + method + "Response");
+
+            if (resultCode != SDL.SDLModel.resultCode["SUCCESS"]) {
+
+                // send repsonse
+                var JSONMessage = {
+                    "jsonrpc": "2.0",
+                    "id": id,
+                    "error": {
+                        "code": resultCode, // type (enum) from SDL protocol
+                        "message": message,
+                        "data": {
+                            "method": method
+                        }
+                    }
+                };
+                this.client.send(JSONMessage);
             }
         }
 
-        if( response.result.method == "BasicCommunication.GetDeviceListResponse" ){
-            if( SDL.States.info.active ){
-                SDL.SDLModel.onGetDeviceList( response.result );
-            }
-        }
-
-        if( response.id == this.activateAppRequestId ){
-            // 
-        }
-    },
-
-    /**
-     * handle RPC erros here
-     */
-    onRPCError: function( error ) {
-        Em.Logger.log( "FFW.BasicCommunicationRPC.onRPCError" );
-        this._super();
-    },
-
-    /**
-     * handle RPC notifications here
-     */
-    onRPCNotification: function( notification ) {
-        Em.Logger.log( "FFW.BasicCommunicationRPC.onRPCNotification" );
-        this._super();
-
-        if( notification.method == this.onAppRegisteredNotification ){
-            SDL.SDLModel.onAppRegistered( notification.params.application );
-            this.getAppList();
-        }
-
-        if( notification.method == this.onAppUnregisteredNotification ){
-            // remove app from list
-            SDL.SDLModel.onAppUnregistered( notification.params );
-        }
-
-        if( notification.method == this.onDeviceListUpdatedNotification ){
-            SDL.SDLModel.onGetDeviceList( notification.params );
-        }
-    },
-
-    /**
-     * handle RPC requests here
-     */
-    onRPCRequest: function( request ) {
-        Em.Logger.log( "FFW.BasicCommunicationRPC.onRPCRequest" );
-        this._super();
-
-        // nothing to do, it is client
-    },
-
-    /**
-     * Request for list of avaliable applications
-     */
-    getAppList: function() {
-        this.getAppListRequestId = this.client.generateId();
-
-        var JSONMessage = {
-            "jsonrpc": "2.0",
-            "id": this.getAppListRequestId,
-            "method": "BasicCommunication.GetAppList",
-            "params": {}
-        };
-        this.client.send( JSONMessage );
-    },
-
-    /**
-     * send notification when version of protocol vas changed
-     * 
-     * @params {Number}
-     */
-    OnVersionChanged: function( version ) {
-        Em.Logger.log( "FFW.BasicCommunication.OnVersionChanged" );
-
-        // send repsonse
-        var JSONMessage = {
-            "jsonrpc": "2.0",
-            "method": "BasicCommunication.OnVersionChanged",
-            "params": {
-                "versionNumber": version
-            }
-        };
-        this.client.send( JSONMessage );
-    },
-
-    /**
-     * Request for list of avaliable devices
-     */
-    getDeviceList: function() {
-        this.getDeviceListRequestId = this.client.generateId();
-
-        var JSONMessage = {
-            "jsonrpc": "2.0",
-            "id": this.getDeviceListRequestId,
-            "method": "BasicCommunication.GetDeviceList",
-            "params": {}
-        };
-        this.client.send( JSONMessage );
-    },
-
-    /**
-     * Sending data from HMI for processing in BasicCommunication
-     * 
-     * @params {Array}
-     */
-    SendData: function( data ) {
-        Em.Logger.log( "FFW.BasicCommunication.SendData" );
-
-        if( !data ){
-            data =
-                [
-                    "Data for sending from HMI to Mobile application."
-                ];
-        }
-
-        // send request
-        var JSONMessage = {
-            "jsonrpc": "2.0",
-            "id": this.client.idStart,
-            "method": "BasicCommunication.SendData",
-            "params": {
-                "data": data
-            }
-        };
-
-        if( SDL.SDLModel.sendDataExtend ){
-            JSONMessage.params["url"] = "http://projects.genivi.org/smartphonelink/";
-            JSONMessage.params["timeout"] = 10000;
-        }
-
-        this.client.send( JSONMessage );
-    },
-
-    /**
-     * Notification when user returned to application
-     * 
-     * @params {Number}
-     */
-    ActivateApp: function( appId ) {
-        Em.Logger.log( "FFW.BasicCommunication.ActivateApp" );
-
-        // send request
-
-        var JSONMessage = {
-            "jsonrpc": "2.0",
-            "id": this.client.idStart,
-            "method": "BasicCommunication.ActivateApp",
-            "params": {
-                "appName": SDL.SDLController.getApplicationModel( appId ).appName,
-                "appId": appId
-            }
-        };
-        this.client.send( JSONMessage );
-    },
-
-    /**
-     * Sent notification that user was turned off the app and the reason why
-     * 
-     * @params {String}
-     * @params {String}
-     * @params {Number}
-     */
-    DeactivateApp: function( appName, reason, appId ) {
-        Em.Logger.log( "FFW.BasicCommunication.OnAppDeactivated" );
-
-        // send request
-
-        var JSONMessage = {
-            "jsonrpc": "2.0",
-            "method": "BasicCommunication.OnAppDeactivated",
-            "params": {
-                "appName": appName,
-                "appId": appId,
-                "reason": reason
-            }
-        };
-        this.client.send( JSONMessage );
-    }
-
-} )
+    })

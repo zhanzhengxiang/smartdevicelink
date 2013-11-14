@@ -5,17 +5,10 @@
 		<title>Ford Smart Device HMI</title>
 		<!--Styles-->
 		<link rel="stylesheet" type="text/css" href="css/buttonControls.css" />
-		<link rel="stylesheet" type="text/css" href="css/ffw.css" />
 		<link rel="stylesheet" type="text/css" href="css/general.css" />
-		<link rel="stylesheet" type="text/css" href="css/home.css" />
-		<link rel="stylesheet" type="text/css" href="css/climate.css" />
 		<link rel="stylesheet" type="text/css" href="css/phone.css" />
-        <link rel="stylesheet" type="text/css" href="css/navigation.css" />
         <link rel="stylesheet" type="text/css" href="css/info.css" />
-        <link rel="stylesheet" type="text/css" href="css/settings.css" />
         <link rel="stylesheet" type="text/css" href="css/media.css" />
-        <link rel="stylesheet" type="text/css" href="css/help.css" />
-        <link rel="stylesheet" type="text/css" href="css/fr.css" />
         <link rel="stylesheet" type="text/css" href="css/sdl.css" />
 		 
 		<!--Libs-->
@@ -38,6 +31,7 @@
 		<script type="text/javascript" src="ffw/RPCClient.js"></script>	
 		<script type="text/javascript" src="ffw/ButtonsRPC.js"></script>
 		<script type="text/javascript" src="ffw/UIRPC.js"></script>
+		<script type="text/javascript" src="ffw/NavigationRPC.js"></script>
 		<script type="text/javascript" src="ffw/TTSRPC.js"></script>
 		<script type="text/javascript" src="ffw/VRRPC.js"></script>
         <script type="text/javascript" src="ffw/VehicleInfoRPC.js"></script>
@@ -48,8 +42,6 @@
 		<script type="text/javascript" src="app/SDLApp.js"></script>
 		<!-- locales -->
 		<script type="text/javascript" src="locale/eng.js"></script>
-        <!-- script type="text/javascript" src="locale/fr.js"></script-->
-		<!-- script type="text/javascript" src="locale/rus.js"></script-->
 		<script type="text/javascript" src="locale/locale.js"></script>
 		<script type="text/javascript" src="app/view/WarningView.js"></script>
         
@@ -65,8 +57,6 @@
 		<script type="text/javascript" src="app/controlls/Indicator.js"></script>
         <script type="text/javascript" src="app/controlls/MenuList.js"></script>
         <script type="text/javascript" src="app/controlls/ScrollableText.js"></script>
-        
-        <script type="text/javascript" src="app/controlls/sdl/PresetButton.js"></script>
 
 		<!-- utils -->
 		<script type="text/javascript" src="app/util/Audio.js"></script>
@@ -86,12 +76,13 @@
         <!-- SDL models END -->
 
 		<!-- Controllers -->
-        <script type="text/javascript" src="app/controller/AppController.js"></script>
+        <!--script type="text/javascript" src="app/controller/AppController.js"></script-->
 		<script type="text/javascript" src="app/controller/MediaController.js"></script>
 		<script type="text/javascript" src="app/controller/PhoneController.js"></script>
         <script type="text/javascript" src="app/controller/InfoController.js"></script>
         
         <script type="text/javascript" src="app/controller/sdl/Controller.js"></script>
+        <script type="text/javascript" src="app/controller/sdl/RPCController.js"></script>
         <script type="text/javascript" src="app/controller/sdl/AppController.js"></script>  
         <script type="text/javascript" src="app/controller/sdl/NonMediaController.js"></script>  
         <script type="text/javascript" src="app/controller/sdl/MediaController.js"></script>  
@@ -151,8 +142,11 @@
         <script type="text/javascript" src="app/view/sdl/AudioPassThruPopUp.js"></script>
         <script type="text/javascript" src="app/view/sdl/VRPopUp.js"></script>
         <script type="text/javascript" src="app/view/sdl/VehicleInfoView.js"></script>
+        <script type="text/javascript" src="app/view/sdl/VRHelpListView.js"></script>
         <script type="text/javascript" src="app/view/sdl/tbtClientStateView.js"></script>
         <script type="text/javascript" src="app/view/sdl/driverDistraction.js"></script>
+        <script type="text/javascript" src="app/view/sdl/ExitAppView.js"></script>
+        
         
 				
 		<script type="text/javascript" src="app/StateManager.js"></script>
