@@ -349,7 +349,7 @@ Application* ApplicationManagerImpl::RegisterApplication(
   int min_version =
     message[strings::msg_params][strings::sync_msg_version]
     [strings::minor_version].asInt();
-
+/*
   if (min_version < APIVersion::kAPIV2) {
     LOG4CXX_ERROR(logger_, "UNSUPPORTED_VERSION");
     utils::SharedPtr<smart_objects::SmartObject> response(
@@ -360,13 +360,13 @@ Application* ApplicationManagerImpl::RegisterApplication(
     ManageMobileCommand(response);
     delete application;
     return NULL;
-  }
+  }*/
   version.min_supported_api_version = static_cast<APIVersion>(min_version);
 
   int max_version =
     message[strings::msg_params][strings::sync_msg_version]
     [strings::major_version].asInt();
-
+/*
   if (max_version > APIVersion::kAPIV2) {
     LOG4CXX_ERROR(logger_, "UNSUPPORTED_VERSION");
     utils::SharedPtr<smart_objects::SmartObject> response(
@@ -377,7 +377,7 @@ Application* ApplicationManagerImpl::RegisterApplication(
     ManageMobileCommand(response);
     delete application;
     return NULL;
-  }
+  }*/
   version.max_supported_api_version = static_cast<APIVersion>(max_version);
   application->set_version(version);
 
