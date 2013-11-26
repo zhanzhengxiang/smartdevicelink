@@ -1,6 +1,3 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
 package com.smartdevicelink.marshal;
 
 import java.util.Hashtable;
@@ -32,7 +29,7 @@ public class JsonRPCMarshaller {
 			JSONObject jsonObject = msg.serializeJSON(version);
 			jsonBytes = jsonObject.toString().getBytes();
 			
-			SyncTrace.logMarshallingEvent(InterfaceActivityDirection.Transmit, jsonBytes, SMARTDEVICELINK_LIB_PRIVATE_KEY);
+			SmartDeviceLinkTrace.logMarshallingEvent(InterfaceActivityDirection.Transmit, jsonBytes, SMARTDEVICELINK_LIB_PRIVATE_KEY);
 		} catch (JSONException e) {
 			DebugTool.logError("Failed to encode messages to JSON.", e);
 		}
@@ -40,7 +37,7 @@ public class JsonRPCMarshaller {
 	}
 	
 	public static Hashtable<String, Object> unmarshall(byte[] message) {
-		SyncTrace.logMarshallingEvent(InterfaceActivityDirection.Receive, message, SMARTDEVICELINK_LIB_PRIVATE_KEY);
+		SmartDeviceLinkTrace.logMarshallingEvent(InterfaceActivityDirection.Receive, message, SMARTDEVICELINK_LIB_PRIVATE_KEY);
 		Hashtable<String, Object> ret = null;
 		try {
 			String jsonString = new String(message);
@@ -118,4 +115,41 @@ public class JsonRPCMarshaller {
 		}
 		return obj;
 	}
+	
+	/*
+	public static JSONObject serializeHashtable(Hashtable<String, Object> hash) 
+			throws JSONException {
+		JSONObject obj = new JSONObject();
+		Iterator<String> hashKeyIterator = hash.keySet().iterator();
+		while (hashKeyIterator.hasNext()) {
+			String key = (String) hashKeyIterator.next();
+			Object value = hash.get(key);
+			if (value instanceof RPCStruct) {
+				obj.put(key, ((RPCStruct) value).serializeJSON());
+			} else if (value instanceof Vector<?>) {
+				JSONArray toPut = new JSONArray();
+				Iterator<Object> valueIterator = ((Vector) value).iterator();
+				while (valueIterator.hasNext()) {
+					Object anObject = valueIterator.next();					
+					if (anObject instanceof RPCStruct) {
+						RPCStruct toSerialize = (RPCStruct) anObject;
+						toPut.put(toSerialize.serializeJSON());
+					} else if (anObject instanceof Hashtable) {
+						Hashtable hashtable = (Hashtable) anObject;
+						RPCStruct toSerialize = new RPCStruct(hashtable);
+						toPut.put(toSerialize.serializeJSON());
+					} else {
+						toPut.put(anObject);
+					}
+				}
+				obj.put(key, toPut);
+			} else if (value instanceof Hashtable) {
+				obj.put(key, serializeHashtable((Hashtable)value));
+			} else {
+				obj.put(key, value);
+			}
+		}
+		return obj;
+	}
+	*/
 }

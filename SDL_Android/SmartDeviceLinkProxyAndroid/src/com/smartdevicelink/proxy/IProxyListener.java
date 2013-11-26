@@ -1,6 +1,3 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
 package com.smartdevicelink.proxy;
 
 import com.smartdevicelink.proxy.interfaces.IProxyListenerBase;

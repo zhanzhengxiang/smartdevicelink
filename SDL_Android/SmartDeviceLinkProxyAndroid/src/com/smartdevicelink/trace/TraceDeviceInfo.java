@@ -1,6 +1,6 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
+/**
+ * 
+ */
 package com.smartdevicelink.trace;
 
 import java.util.Iterator;
@@ -12,6 +12,10 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.telephony.TelephonyManager;
 
+/**
+ * @author vvolkman
+ * 
+ */
 public class TraceDeviceInfo {
 	// http://developer.android.com/guide/topics/data/data-storage.html
 
@@ -111,7 +115,7 @@ public class TraceDeviceInfo {
 		StringBuilder write = new StringBuilder("<btpairs>");
 		Iterator<BluetoothDevice> iter = btDevices.iterator();
 		while (iter.hasNext()) {
-			write.append(SyncTrace.getBTDeviceInfo(iter.next()));
+			write.append(SmartDeviceLinkTrace.getBTDeviceInfo(iter.next()));
 		}
 		write.append("</btpairs>");
 

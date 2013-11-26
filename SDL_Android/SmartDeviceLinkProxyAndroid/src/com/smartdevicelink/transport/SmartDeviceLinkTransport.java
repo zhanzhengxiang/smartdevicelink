@@ -1,10 +1,7 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
 package com.smartdevicelink.transport;
 
 import com.smartdevicelink.exception.SmartDeviceLinkException;
-import com.smartdevicelink.trace.SyncTrace;
+import com.smartdevicelink.trace.SmartDeviceLinkTrace;
 import com.smartdevicelink.trace.enums.InterfaceActivityDirection;
 import com.smartdevicelink.util.DebugTool;
 
@@ -36,8 +33,8 @@ public abstract class SmartDeviceLinkTransport {
 			// Trace received data
 			if (receivedBytesLength > 0) {
 				// Send transport data to the siphon server
-				SiphonServer.sendBytesFromSmartDeviceLink(receivedBytes, 0, receivedBytesLength);
-				SyncTrace.logTransportEvent("", null, InterfaceActivityDirection.Receive, receivedBytes, receivedBytesLength, SMARTDEVICELINK_LIB_TRACE_KEY);
+				SiphonServer.sendBytesFromSMARTDEVICELINK(receivedBytes, 0, receivedBytesLength);
+				SmartDeviceLinkTrace.logTransportEvent("", null, InterfaceActivityDirection.Receive, receivedBytes, receivedBytesLength, SMARTDEVICELINK_LIB_TRACE_KEY);
 				
 				_transportListener.onTransportBytesReceived(receivedBytes, receivedBytesLength);
 			} // end-if
@@ -68,7 +65,7 @@ public abstract class SmartDeviceLinkTransport {
         // Send transport data to the siphon server
 		SiphonServer.sendBytesFromAPP(message, offset, length);
         
-		SyncTrace.logTransportEvent("", null, InterfaceActivityDirection.Transmit, message, offset, length, SMARTDEVICELINK_LIB_TRACE_KEY);
+		SmartDeviceLinkTrace.logTransportEvent("", null, InterfaceActivityDirection.Transmit, message, offset, length, SMARTDEVICELINK_LIB_TRACE_KEY);
         return bytesWereSent;
     } // end-method
 
@@ -79,7 +76,7 @@ public abstract class SmartDeviceLinkTransport {
 	protected void handleTransportConnected() {
 		isConnected = true;
 		try {
-	    	SyncTrace.logTransportEvent("Transport.connected", null, InterfaceActivityDirection.Receive, null, 0, SMARTDEVICELINK_LIB_TRACE_KEY);
+	    	SmartDeviceLinkTrace.logTransportEvent("Transport.connected", null, InterfaceActivityDirection.Receive, null, 0, SMARTDEVICELINK_LIB_TRACE_KEY);
 			_transportListener.onTransportConnected();
 		} catch (Exception excp) {
 			DebugTool.logError(FailurePropagating_Msg + "onTransportConnected: " + excp.toString(), excp);
@@ -93,7 +90,7 @@ public abstract class SmartDeviceLinkTransport {
 		isConnected = false;
 
 		try {
-	    	SyncTrace.logTransportEvent("Transport.disconnect: " + info, null, InterfaceActivityDirection.Transmit, null, 0, SMARTDEVICELINK_LIB_TRACE_KEY);
+	    	SmartDeviceLinkTrace.logTransportEvent("Transport.disconnect: " + info, null, InterfaceActivityDirection.Transmit, null, 0, SMARTDEVICELINK_LIB_TRACE_KEY);
 			_transportListener.onTransportDisconnected(info);
 		} catch (Exception excp) {
 			DebugTool.logError(FailurePropagating_Msg + "onTransportDisconnected: " + excp.toString(), excp);

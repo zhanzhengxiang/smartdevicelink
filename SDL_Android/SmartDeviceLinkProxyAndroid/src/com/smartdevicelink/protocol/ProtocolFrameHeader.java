@@ -1,6 +1,3 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
 package com.smartdevicelink.protocol;
 
 import com.smartdevicelink.protocol.enums.FrameType;
@@ -23,7 +20,7 @@ public class ProtocolFrameHeader {
 	
 	public ProtocolFrameHeader() {}
 	
-	public static ProtocolFrameHeader parseWiProHeader(byte[] header) {
+	public static ProtocolFrameHeader parseSmartDeviceLinkProHeader(byte[] header) {
 		ProtocolFrameHeader msg = new ProtocolFrameHeader();
 		
 		byte version = (byte) (header[0] >>> 4);
@@ -57,17 +54,17 @@ public class ProtocolFrameHeader {
 	
 	protected byte[] assembleHeaderBytes() {
 		int header = 0;
-		header |= version;
+		header |= (version & 0x0F);
 		header <<= 1;
 		header |= (compressed ? 1 : 0);
 		header <<= 3;
-		header |= frameType.value();
+		header |= (frameType.value() & 0x07);
 		header <<= 8;
-		header |= sessionType.value();
+		header |= (sessionType.value() & 0xFF);
 		header <<= 8;
-		header |= frameData;
+		header |= (frameData & 0xFF);
 		header <<= 8;
-		header |= sessionID;
+		header |= (sessionID & 0xFF);
 		
 		if (version == 1) {
 			byte[] ret = new byte[8];

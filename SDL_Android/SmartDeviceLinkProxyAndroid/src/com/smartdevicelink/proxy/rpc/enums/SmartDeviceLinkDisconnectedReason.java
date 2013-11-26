@@ -1,6 +1,3 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
 package com.smartdevicelink.proxy.rpc.enums;
 
 public enum SmartDeviceLinkDisconnectedReason {
@@ -14,7 +11,6 @@ public enum SmartDeviceLinkDisconnectedReason {
     LANGUAGE_CHANGE,
     MASTER_RESET,
     FACTORY_DEFAULTS,
-    HEARTBEAT_PAST_DUE,
     TRANSPORT_ERROR,
     APPLICATION_REQUESTED_DISCONNECT,
     DEFAULT;

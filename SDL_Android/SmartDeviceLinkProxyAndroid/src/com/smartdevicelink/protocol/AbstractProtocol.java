@@ -1,17 +1,15 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
 package com.smartdevicelink.protocol;
 
 import com.smartdevicelink.protocol.SmartDeviceLinkProtocol.MessageFrameAssembler;
 import com.smartdevicelink.protocol.enums.SessionType;
-import com.smartdevicelink.trace.SyncTrace;
+import com.smartdevicelink.trace.SmartDeviceLinkTrace;
 import com.smartdevicelink.trace.enums.InterfaceActivityDirection;
 
 public abstract class AbstractProtocol {
-	private static final String SmartDeviceLink_LIB_TRACE_KEY = "42baba60-eb57-11df-98cf-0800200c9a66";
+	private static final String SMARTDEVICELINK_LIB_TRACE_KEY = "42baba60-eb57-11df-98cf-0800200c9a66";
 	
 	private IProtocolListener _protocolListener = null;
+	//protected IProtocolListener ProtocolListener() { return _protocolListener; }
 	
 	// Lock to ensure all frames are sent uninterupted 
 	private Object _frameLock = new Object();
@@ -50,16 +48,16 @@ public abstract class AbstractProtocol {
 	
 	// This method is called whenever the protocol receives a complete frame
 	protected void handleProtocolFrameReceived(ProtocolFrameHeader header, byte[] data, MessageFrameAssembler assembler) {
-		SyncTrace.logProtocolEvent(InterfaceActivityDirection.Receive, header, data, 
-				0, data.length, SmartDeviceLink_LIB_TRACE_KEY);
+		SmartDeviceLinkTrace.logProtocolEvent(InterfaceActivityDirection.Receive, header, data, 
+				0, data.length, SMARTDEVICELINK_LIB_TRACE_KEY);
 		
 		assembler.handleFrame(header, data);
 	}
 	
 	// This method is called whenever a protocol has an entire frame to send
 	protected void handleProtocolFrameToSend(ProtocolFrameHeader header, byte[] data, int offset, int length) {
-		SyncTrace.logProtocolEvent(InterfaceActivityDirection.Transmit, header, data, 
-				offset, length, SmartDeviceLink_LIB_TRACE_KEY);
+		SmartDeviceLinkTrace.logProtocolEvent(InterfaceActivityDirection.Transmit, header, data, 
+				offset, length, SMARTDEVICELINK_LIB_TRACE_KEY);
 		
 		synchronized(_frameLock) {
 			byte[] frameHeader = header.assembleHeaderBytes();

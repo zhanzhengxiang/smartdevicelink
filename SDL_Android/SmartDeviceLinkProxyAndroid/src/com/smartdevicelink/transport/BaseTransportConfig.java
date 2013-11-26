@@ -1,6 +1,3 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
 package com.smartdevicelink.transport;
 
 /**
@@ -13,5 +10,6 @@ public abstract class BaseTransportConfig {
 	 * 
 	 * @return One of {@link TransportType} enumeration values that represents type of this transport configuration.
 	 */
-	public abstract TransportType getTransportType();
+	public abstract TransportType getTransportType();	
+	
 }

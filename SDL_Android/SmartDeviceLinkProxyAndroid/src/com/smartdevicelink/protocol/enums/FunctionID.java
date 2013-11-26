@@ -1,6 +1,3 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
 package com.smartdevicelink.protocol.enums;
 
 import java.util.ArrayList;
@@ -22,7 +19,7 @@ public class FunctionID {
 	}
 	
 	static public void initFunctionIds() {
-		String [] functionIds = new String[60];
+		String [] functionIds = new String[98306];
 		functionIds[1] = Names.RegisterAppInterface;
 		functionIds[2] = Names.UnregisterAppInterface;
 		functionIds[3] = Names.SetGlobalProperties;
@@ -38,41 +35,45 @@ public class FunctionID {
 		functionIds[13] = Names.Show;
 		functionIds[14] = Names.Speak;
 		functionIds[15] = Names.SetMediaClockTimer;
-		functionIds[16] = Names.EncodedSyncPData;
-		functionIds[17] = Names.DialNumber;
-		functionIds[18] = Names.PerformAudioPassThru;
-		functionIds[19] = Names.EndAudioPassThru;
-		functionIds[20] = Names.SubscribeButton;
-		functionIds[21] = Names.UnsubscribeButton;
-		functionIds[22] = Names.SubscribeVehicleData;
-		functionIds[23] = Names.UnsubscribeVehicleData;
-		functionIds[24] = Names.GetVehicleData;
-		functionIds[25] = Names.ReadDID;
-		functionIds[26] = Names.GetDTCs;
-		functionIds[27] = Names.ScrollableMessage;
-		functionIds[28] = Names.Slider;
-		functionIds[29] = Names.ShowConstantTBT;
-		functionIds[30] = Names.AlertManeuver;
-		functionIds[31] = Names.UpdateTurnList;
-		functionIds[32] = Names.ChangeRegistration;
-		functionIds[33] = Names.GenericResponse;
-		functionIds[34] = Names.PutFile;
-		functionIds[35] = Names.DeleteFile;
-		functionIds[36] = Names.ListFiles;
-		functionIds[37] = Names.SetAppIcon;
-		functionIds[38] = Names.SetDisplayLayout;
-		functionIds[39] = Names.OnHMIStatus;
-		functionIds[40] = Names.OnAppInterfaceUnregistered;
-		functionIds[41] = Names.OnButtonEvent;
-		functionIds[42] = Names.OnButtonPress;
-		functionIds[43] = Names.OnVehicleData;
-		functionIds[44] = Names.OnCommand;
-		functionIds[45] = Names.OnEncodedSyncPData;
-		functionIds[46] = Names.OnTBTClientState;
-		functionIds[47] = Names.OnDriverDistraction;
-		functionIds[48] = Names.OnPermissionsChange;
-		functionIds[49] = Names.OnAudioPassThru;
-		functionIds[50] = Names.OnLanguageChange;	
+		functionIds[16] = Names.PerformAudioPassThru;
+		functionIds[17] = Names.EndAudioPassThru;
+		functionIds[18] = Names.SubscribeButton;
+		functionIds[19] = Names.UnsubscribeButton;
+		functionIds[20] = Names.SubscribeVehicleData;
+		functionIds[21] = Names.UnsubscribeVehicleData;
+		functionIds[22] = Names.GetVehicleData;
+		functionIds[23] = Names.ReadDID;
+		functionIds[24] = Names.GetDTCs;
+		functionIds[25] = Names.ScrollableMessage;
+		functionIds[26] = Names.Slider;
+		functionIds[27] = Names.ShowConstantTBT;
+		functionIds[28] = Names.AlertManeuver;
+		functionIds[29] = Names.UpdateTurnList;
+		functionIds[30] = Names.ChangeRegistration;
+		functionIds[31] = Names.GenericResponse;
+		functionIds[32] = Names.PutFile;
+		functionIds[33] = Names.DeleteFile;
+		functionIds[34] = Names.ListFiles;
+		functionIds[35] = Names.SetAppIcon;
+		functionIds[36] = Names.SetDisplayLayout;
+		
+		functionIds[32768] = Names.OnHMIStatus;
+		functionIds[32769] = Names.OnAppInterfaceUnregistered;
+		functionIds[32770] = Names.OnButtonEvent;
+		functionIds[32771] = Names.OnButtonPress;
+		functionIds[32772] = Names.OnVehicleData;
+		functionIds[32773] = Names.OnCommand;
+		functionIds[32774] = Names.OnTBTClientState;
+		functionIds[32775] = Names.OnDriverDistraction;
+		functionIds[32776] = Names.OnPermissionsChange;
+		functionIds[32777] = Names.OnAudioPassThru;
+		functionIds[32778] = Names.OnLanguageChange;
+
+		functionIds[65536] = Names.EncodedSyncPData;
+		functionIds[65537] = Names.SyncPData;
+		
+		functionIds[98304] = Names.OnEncodedSyncPData;
+		functionIds[98305] = Names.OnSyncPData;
 		
 		functionID = new ArrayList<String>(Arrays.asList(functionIds));
 	}

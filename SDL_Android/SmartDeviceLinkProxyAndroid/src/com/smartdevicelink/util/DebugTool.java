@@ -1,6 +1,3 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
 package com.smartdevicelink.util;
 
 import java.util.Vector;
@@ -13,6 +10,7 @@ import com.smartdevicelink.transport.SiphonServer;
 
 public class DebugTool {
 	
+
 	public static final String TAG = "SmartDeviceLinkProxy";
 
 	private static boolean isErrorEnabled = false;
@@ -26,9 +24,16 @@ public class DebugTool {
 	}
 
 	public static void disableDebugTool() {
-		isErrorEnabled = false;
+		isErrorEnabled = true;
 		isWarningEnabled = false;
 		isInfoEnabled = false;
+	}
+	
+	public static boolean isDebugEnabled() 
+	{
+		if (isWarningEnabled && isInfoEnabled) return true;
+		
+		return false;		
 	}
 	
 	private static String prependProxyVersionNumberToString(String string) {
@@ -91,6 +96,18 @@ public class DebugTool {
 			NativeLogTool.logInfo(TAG, msg);
 		}
 	}
+
+	public static void logInfo(String msg, boolean bPrependVersion) {
+		Boolean wasWritten = false;
+		
+		if (bPrependVersion) msg = prependProxyVersionNumberToString(msg);
+		
+		wasWritten = logToSiphon(msg);
+		
+		if (isInfoEnabled && !wasWritten) {
+			NativeLogTool.logInfo(TAG, msg);
+		}
+	}
 	
 	protected static Boolean logToSiphon(String msg) {
 		// Initialize the SiphonServer, will be ignored if already initialized
@@ -109,10 +126,10 @@ public class DebugTool {
 		}
 		
 		if (ex instanceof SmartDeviceLinkException) {
-			SmartDeviceLinkException SmartDeviceLinkEx = (SmartDeviceLinkException) ex;
-			if (SmartDeviceLinkEx.getInnerException() != null && SmartDeviceLinkEx != SmartDeviceLinkEx.getInnerException()) {
+			SmartDeviceLinkException smartDeviceLinkEx = (SmartDeviceLinkException) ex;
+			if (smartDeviceLinkEx.getInnerException() != null && smartDeviceLinkEx != smartDeviceLinkEx.getInnerException()) {
 				toPrint += "\n  nested:\n";
-				toPrint += getLine(SmartDeviceLinkEx.getInnerException());
+				toPrint += getLine(smartDeviceLinkEx.getInnerException());
 			}
 		}
 		

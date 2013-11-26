@@ -1,12 +1,8 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
 package com.smartdevicelink.proxy;
 
 import java.util.Hashtable;
+import java.util.Iterator;
 
-import com.smartdevicelink.protocol.ProtocolMessage;
-import com.smartdevicelink.protocol.enums.FunctionID;
 import com.smartdevicelink.proxy.constants.Names;
 
 public class RPCMessage extends RPCStruct  {
@@ -35,8 +31,12 @@ public class RPCMessage extends RPCStruct  {
 
 	public RPCMessage(Hashtable hash) {
 		store = hash;
-		messageType = (String)hash.keys().nextElement();
-
+		Iterator it = hash.keySet().iterator();
+		String key;
+		while (it.hasNext()) {
+			key = (String)it.next().toString();
+			if (key != Names.bulkData) messageType = key;
+		}
 		function = (Hashtable)hash.get(messageType);
 		parameters = (Hashtable)function.get(Names.parameters);
 	}

@@ -1,23 +1,22 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
 package com.smartdevicelink.protocol;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Hashtable;
 
+import android.util.Log;
+
+import com.smartdevicelink.exception.*;
 import com.smartdevicelink.protocol.enums.*;
 import com.smartdevicelink.util.BitConverter;
 import com.smartdevicelink.util.DebugTool;
-import com.smartdevicelink.exception.*;
 
 public class SmartDeviceLinkProtocol extends AbstractProtocol {
 	byte _version = 1;
 	private final static String FailurePropagating_Msg = "Failure propagating ";
 
-	public static final int MTU_SIZE = 1500;
-	public static int HEADER_SIZE = 8;
-	public static int MAX_DATA_SIZE = MTU_SIZE - HEADER_SIZE;
+	private static final int MTU_SIZE = 1500;
+	private static int HEADER_SIZE = 8;
+	private static int MAX_DATA_SIZE = MTU_SIZE - HEADER_SIZE;
 
 	boolean _haveHeader = false;
 	byte[] _headerBuf = new byte[HEADER_SIZE];
@@ -64,9 +63,12 @@ public class SmartDeviceLinkProtocol extends AbstractProtocol {
 		ProtocolFrameHeader header = ProtocolFrameHeaderFactory.createStartSessionACK(sessionType, sessionID, 0x00, _version);
 		sendFrameToTransport(header);
 	} // end-method
-
+	
 	public void EndProtocolSession(SessionType sessionType, byte sessionID) {
-		ProtocolFrameHeader header = ProtocolFrameHeaderFactory.createEndSession(sessionType, sessionID, 0x00, _version);
+		ProtocolFrameHeader header = ProtocolFrameHeaderFactory.createEndSession(sessionType, sessionID, hashID, _version);
+		//byte[] data = new byte[4];
+		//data = BitConverter.intToByteArray(hashID);
+		//handleProtocolFrameToSend(header, data, 0, data.length);
 		sendFrameToTransport(header);
 	} // end-method
 
@@ -95,7 +97,7 @@ public class SmartDeviceLinkProtocol extends AbstractProtocol {
 		// Get the message lock for this protocol session
 		Object messageLock = _messageLocks.get(sessionID);
 		if (messageLock == null) {
-			handleProtocolError("Error sending protocol message to SmartDeviceLink.", 
+			handleProtocolError("Error sending protocol message to SMARTDEVICELINK.", 
 					new SmartDeviceLinkException("Attempt to send protocol message prior to startSession ACK.", SmartDeviceLinkExceptionCause.SMARTDEVICELINK_UNAVAILALBE));
 			return;
 		}
@@ -111,6 +113,7 @@ public class SmartDeviceLinkProtocol extends AbstractProtocol {
 				if (data.length % MAX_DATA_SIZE > 0) {
 					frameCount++;
 				}
+				//byte[] firstFrameData = new byte[HEADER_SIZE];
 				byte[] firstFrameData = new byte[8];
 				// First four bytes are data size.
 				System.arraycopy(BitConverter.intToByteArray(data.length), 0, firstFrameData, 0, 4);
@@ -184,8 +187,29 @@ public class SmartDeviceLinkProtocol extends AbstractProtocol {
 				_headerBufWritePos += headerBytesNeeded;
 				receivedBytesReadPos += headerBytesNeeded;
 				_haveHeader = true;
-				_currentHeader  = ProtocolFrameHeader.parseWiProHeader(_headerBuf);
-				_dataBuf = new byte[_currentHeader.getDataSize()];
+				_currentHeader  = ProtocolFrameHeader.parseSmartDeviceLinkProHeader(_headerBuf);
+				
+				
+				int iDataSize = _currentHeader.getDataSize();	
+
+				if (iDataSize <= 4000)
+				{
+					_dataBuf = new byte[iDataSize];
+				}
+				else
+				{
+					//something is wrong with the header
+					Log.e("HandleReceivedBytes", "Corrupt header found, request to allocate a byte array of size: " + iDataSize);	
+					Log.e("HandleReceivedBytes", "_headerBuf: " + _headerBuf.toString());
+					Log.e("HandleReceivedBytes", "_currentHeader: " + _currentHeader.toString());
+					Log.e("HandleReceivedBytes", "receivedBytes: " + receivedBytes.toString());
+					Log.e("HandleReceivedBytes", "receivedBytesReadPos: " + receivedBytesReadPos);
+					Log.e("HandleReceivedBytes", "_headerBufWritePos: " + _headerBufWritePos);
+					Log.e("HandleReceivedBytes", "headerBytesNeeded: " + headerBytesNeeded);
+					handleProtocolError("Error handling protocol message from SMARTDEVICELINK, header invalid.", 
+							new SmartDeviceLinkException("Error handling protocol message from SMARTDEVICELINK, header invalid.", SmartDeviceLinkExceptionCause.INVALID_HEADER));
+					return;					
+				}
 				_dataBufWritePos = 0;
 			}
 		}
@@ -272,7 +296,7 @@ public class SmartDeviceLinkProtocol extends AbstractProtocol {
 				ProtocolMessage message = new ProtocolMessage();
 				message.setSessionType(header.getSessionType());
 				message.setSessionID(header.getSessionID());
-				//If it is WiPro 2.0 it must have binary header
+				//If it is SmartDeviceLinkPro 2.0 it must have binary header
 				if (_version == 2) {
 					BinaryFrameHeader binFrameHeader = BinaryFrameHeader.
 							parseBinaryHeader(accumulator.toByteArray());
@@ -299,9 +323,21 @@ public class SmartDeviceLinkProtocol extends AbstractProtocol {
 		} // end-method
 		
 		protected void handleMultiFrameMessageFrame(ProtocolFrameHeader header, byte[] data) {
-			if (header.getFrameType() == FrameType.First) {
+			//if (!hasFirstFrame) {
+			//	hasFirstFrame = true;
+			if (header.getFrameType() == FrameType.First)
+			{
 				handleFirstDataFrame(header, data);
-			} else {
+			}
+				
+			//} else if (!hasSecondFrame) {
+			//	hasSecondFrame = true;
+			//	framesRemaining--;
+			//	handleSecondFrame(header, data);
+			//} else {
+			//	framesRemaining--;
+			else
+			{
 				handleRemainingFrame(header, data);
 			}
 				
@@ -323,8 +359,6 @@ public class SmartDeviceLinkProtocol extends AbstractProtocol {
 			} // end-if
 		} // end-method
 		
-		private void handleProtocolHeartbeat(ProtocolFrameHeader header, byte[] data) {
-		} // end-method
 		
 		private void handleControlFrame(ProtocolFrameHeader header, byte[] data) {
 			if (header.getFrameData() == FrameDataControlFrameType.StartSession.getValue()) {
@@ -336,11 +370,17 @@ public class SmartDeviceLinkProtocol extends AbstractProtocol {
 					messageLock = new Object();
 					_messageLocks.put(header.getSessionID(), messageLock);
 				}
+				//hashID = BitConverter.intFromByteArray(data, 0);
+				if (_version == 2) hashID = header.getMessageID();
 				handleProtocolSessionStarted(header.getSessionType(), header.getSessionID(), _version, "");				
 			} else if (header.getFrameData() == FrameDataControlFrameType.StartSessionNACK.getValue()) {
 				handleProtocolError("Got StartSessionNACK for protocol sessionID=" + header.getSessionID(), null);
 			} else if (header.getFrameData() == FrameDataControlFrameType.EndSession.getValue()) {
-				handleProtocolSessionEnded(header.getSessionType(), header.getSessionID(), "");
+				//if (hashID == BitConverter.intFromByteArray(data, 0)) 
+				if (_version == 2) {
+					if (hashID == header.getMessageID())
+						handleProtocolSessionEnded(header.getSessionType(), header.getSessionID(), "");
+				} else handleProtocolSessionEnded(header.getSessionType(), header.getSessionID(), "");
 			}
 		} // end-method
 				
@@ -353,7 +393,7 @@ public class SmartDeviceLinkProtocol extends AbstractProtocol {
 			} // end-if
 			message.setSessionType(header.getSessionType());
 			message.setSessionID(header.getSessionID());
-			
+			//If it is SmartDeviceLinkPro 2.0 it must have binary header
 			if (_version == 2) {
 				BinaryFrameHeader binFrameHeader = BinaryFrameHeader.
 						parseBinaryHeader(data);

@@ -1,6 +1,3 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
 package com.smartdevicelink.transport;
 
 import java.io.IOException;
@@ -40,8 +37,8 @@ public class SiphonServer {
 	// Initial timestamp in MS
 	private static long m_startTimeStamp = 0;
 	
-	// SmartDeviceLink Trace Message Version
-	private static byte m_SyncTraceMsgVersionNumber = 1;
+	// SMARTDEVICELINK Trace Message Version
+	private static byte m_smartDeviceLinkTraceMsgVersionNumber = 1;
 	
 	// Max number of ports to attempt a connection on
 	private final static Integer MAX_NUMBER_OF_PORT_ATTEMPTS = 1000;
@@ -63,13 +60,13 @@ public class SiphonServer {
 	public static boolean init() {		
 		// Only initialize if the siphon has not been initialized previously
 
-		// Check here to be lean. If true, no need to SmartDeviceLinkhronize
+		// Check here to be lean. If true, no need to smartDeviceLinkhronize
 		if (m_siphonInitialized) {
 			return true;
 		}
 		
 		synchronized (m_siphonLock) {
-			// To prevent a race condition, re-check m_siphonInitialized inside of SmartDeviceLinkhronize block
+			// To prevent a race condition, re-check m_siphonInitialized inside of smartDeviceLinkhronize block
 			if (!m_siphonInitialized) {
 				if (m_siphonClientThread == null) {
 					// Set current time stamp 
@@ -121,7 +118,7 @@ public class SiphonServer {
 		return sendSiphonData(SiphonDataType.fromApp, msgBytes, offset, length);
 	} // end-method
 
-	public static Boolean sendBytesFromSmartDeviceLink(byte[] msgBytes, int offset, int length) {		
+	public static Boolean sendBytesFromSMARTDEVICELINK(byte[] msgBytes, int offset, int length) {		
 
 		if (m_sendingFormattedTrace) {
 			return false;
@@ -243,7 +240,7 @@ public class SiphonServer {
 			
 			siphonOutputStream.write(BitConverter.intToByteArray(blobSize));
 			siphonOutputStream.write(new byte[] {directionIndicator});
-			siphonOutputStream.write(new byte[] {m_SyncTraceMsgVersionNumber});
+			siphonOutputStream.write(new byte[] {m_smartDeviceLinkTraceMsgVersionNumber});
 			siphonOutputStream.write(intToByteArray(timeStamp));
 			siphonOutputStream.write(msgBytes, offset, length);
 		} catch (Exception ex) {
@@ -267,7 +264,7 @@ public class SiphonServer {
     		Boolean foundOpenPort = false;
     		listenPort = port;
     		
-    		// Listen to accept incoming connection from SmartDeviceLink
+    		// Listen to accept incoming connection from SMARTDEVICELINK
     		while (!foundOpenPort) {
 	    		try {
 	    			m_listeningSocket = new ServerSocket(listenPort);

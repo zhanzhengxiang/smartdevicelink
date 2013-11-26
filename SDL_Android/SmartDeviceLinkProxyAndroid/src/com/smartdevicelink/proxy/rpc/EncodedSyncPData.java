@@ -1,6 +1,3 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
 package com.smartdevicelink.proxy.rpc;
 
 import java.util.Hashtable;
@@ -9,15 +6,17 @@ import java.util.Vector;
 import com.smartdevicelink.proxy.RPCRequest;
 import com.smartdevicelink.proxy.constants.Names;
 
+
 public class EncodedSyncPData extends RPCRequest {
+
 	public EncodedSyncPData() {
         super("EncodedSyncPData");
     }
-    
+   
     public EncodedSyncPData(Hashtable hash) {
         super(hash);
     }
-    
+  
     public Vector<String> getData() {
         if (parameters.get(Names.data) instanceof Vector<?>) {
         	Vector<?> list = (Vector<?>)parameters.get(Names.data);
@@ -30,6 +29,7 @@ public class EncodedSyncPData extends RPCRequest {
         }
     	return null;
     }
+   
     public void setData( Vector<String> data ) {
     	if ( data!= null) {
     		parameters.put(Names.data, data );
