@@ -1,9 +1,9 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
+//  SetMediaClockTimerViewController.h
+//  SmartDeviceLinkTester
+//  Copyright (c) 2013 Ford Motor Company
 
 #import <UIKit/UIKit.h>
-#import "SDLBrain.h"
+#import "SmartDeviceLinkTester.h"
 
 @interface SetMediaClockTimerViewController : UIViewController <UITextFieldDelegate> {
     
@@ -17,6 +17,6 @@
     
 }
 
--(IBAction)setMediaClockTimerPressed:(id)sender;
+-(IBAction)sendRPC:(id)sender;
 
 @end

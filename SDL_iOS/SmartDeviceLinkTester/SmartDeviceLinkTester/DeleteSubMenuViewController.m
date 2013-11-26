@@ -1,6 +1,6 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
+//  DeleteSubMenuViewController.m
+//  SmartDeviceLinkTester
+//  Copyright (c) 2013 Ford Motor Company
 
 #import "DeleteSubMenuViewController.h"
 
@@ -25,7 +25,7 @@
     
     AddMenuOption *amo = [self returnAddMenuOptionWithMenuName:chosenSubMenu];
     
-    [[SDLBrain getInstance] deleteSubMenuPressedwithID:[amo menuID]];
+    [[SmartDeviceLinkTester getInstance] deleteSubMenuPressedwithID:[amo menuID]];
     
     [subMenuIssued removeObject:amo];
     [self updateTable];

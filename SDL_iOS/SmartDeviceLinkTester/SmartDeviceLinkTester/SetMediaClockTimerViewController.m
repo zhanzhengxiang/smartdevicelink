@@ -1,8 +1,9 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
+//  SetMediaClockTimerViewController.m
+//  SmartDeviceLinkTester
+//  Copyright (c) 2013 Ford Motor Company
 
 #import "SetMediaClockTimerViewController.h"
+#import "AppDelegate.h"
 
 @interface SetMediaClockTimerViewController ()
 
@@ -10,7 +11,7 @@
 
 @implementation SetMediaClockTimerViewController
 
--(IBAction)setMediaClockTimerPressed:(id)sender {
+-(IBAction)sendRPC:(id)sender {
    
     SDLUpdateMode *ua;
     if (updateControl.selectedSegmentIndex == 0) {
@@ -22,15 +23,23 @@
     else if (updateControl.selectedSegmentIndex == 2) {
         ua = [SDLUpdateMode PAUSE];
     }
-    else {
+    else if (updateControl.selectedSegmentIndex == 3) {
         ua = [SDLUpdateMode RESUME];
     }
+    else {
+        ua = [SDLUpdateMode CLEAR];
+    }
     
-    [[SDLBrain getInstance] setMediaClockTimerPressedwithHours:[NSNumber numberWithInt:[[hoursText text] intValue]] minutes:[NSNumber numberWithInt:[[minutesText text] intValue]] seconds:[NSNumber numberWithInt:[[secondsText text] intValue]] updateMode:ua];
+    SDLSetMediaClockTimer *req = [SDLRPCRequestFactory buildSetMediaClockTimerWithHours:[NSNumber numberWithInt:[[hoursText text] intValue]] minutes:[NSNumber numberWithInt:[[minutesText text] intValue]] seconds:[NSNumber numberWithInt:[[secondsText text] intValue]] updateMode:ua correlationID:[[SmartDeviceLinkTester getInstance] getNextCorrID]];
     
-    hoursText.text = @"";
-    minutesText.text = @"";
-    secondsText.text = @"";
+    [[SmartDeviceLinkTester getInstance] sendAndPostRPCMessage:req];
+    
+    //Go Back To RPC List View
+    [self.navigationController popToRootViewControllerAnimated:YES];
+    
+    //Go To Console View
+    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+    appDelegate.tabBarController.selectedViewController = [appDelegate.tabBarController.viewControllers objectAtIndex:1];
 }
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField {

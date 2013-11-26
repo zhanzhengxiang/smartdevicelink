@@ -1,9 +1,9 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
+//  AddSubMenuViewController.h
+//  SmartDeviceLinkTester
+//  Copyright (c) 2013 Ford Motor Company
 
 #import <UIKit/UIKit.h>
-#import "SDLBrain.h"
+#import "SmartDeviceLinkTester.h"
 #import "AddMenuOption.h"
 
 @interface AddSubMenuViewController : UIViewController <UITextFieldDelegate> {
@@ -16,7 +16,7 @@
 }
 
 -(IBAction)displayPositionSlider:(id)sender;
--(IBAction)addSubMenuPressed:(id)sender;
+-(IBAction)sendRPC:(id)sender;
 
 @end
 

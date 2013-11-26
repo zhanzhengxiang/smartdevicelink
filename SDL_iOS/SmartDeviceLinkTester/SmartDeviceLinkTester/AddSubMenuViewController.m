@@ -1,8 +1,9 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
+//  AddSubMenuViewController.m
+//  SmartDeviceLinkTester
+//  Copyright (c) 2013 Ford Motor Company
 
 #import "AddSubMenuViewController.h"
+#import "AppDelegate.h"
 
 @interface AddSubMenuViewController ()
 
@@ -19,11 +20,18 @@
     return NO;
 }
 
--(IBAction)addSubMenuPressed:(id)sender {
+-(IBAction)sendRPC:(id)sender {
     
     [subMenuIssued addObject:[[AddMenuOption alloc] initWithMenuName:[menuNameText text] menuId:[NSNumber numberWithInt:[[menuIDText text] intValue]]]];
     
-    [[SDLBrain getInstance] addSubMenuPressedwithID:[NSNumber numberWithInt:[[menuIDText text] intValue]] menuName:[menuNameText text] position:[NSNumber numberWithDouble:round([positionSlider value])]];
+    [[SmartDeviceLinkTester getInstance] addSubMenuPressedwithID:[NSNumber numberWithInt:[[menuIDText text] intValue]] menuName:[menuNameText text] position:[NSNumber numberWithDouble:round([positionSlider value])]];
+    
+    //Go Back To RPC List View
+    [self.navigationController popToRootViewControllerAnimated:YES];
+    
+    //Go To Console View
+    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+    appDelegate.tabBarController.selectedViewController = [appDelegate.tabBarController.viewControllers objectAtIndex:1];
 }
 
 

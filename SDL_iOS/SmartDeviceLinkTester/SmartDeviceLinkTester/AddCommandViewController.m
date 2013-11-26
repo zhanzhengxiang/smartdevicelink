@@ -1,8 +1,9 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
+//  AddCommandViewController.m
+//  SmartDeviceLinkTester
+//  Copyright (c) 2013 Ford Motor Company
 
 #import "AddCommandViewController.h"
+#import "AppDelegate.h"
 
 @interface AddCommandViewController ()
 
@@ -11,18 +12,16 @@
 @implementation AddCommandViewController
 
 
--(IBAction)addCommandPressed:(id)sender {
+-(IBAction)sendRPC:(id)sender{
   
     NSArray *voiceCommand = nil;
     NSString *menuName = nil;
     NSString *menuNameTable = nil;
     if ([[menuNameText text] isEqualToString:@""]) {
-        [SDLDebugTool logInfo:@"menuNameText is empty"];
         menuNameTable = [[NSString stringWithFormat:@"[%@]", [addVRText text]] retain];
      
     }
     else {
-        [SDLDebugTool logInfo:@"menuNameText contains text"];
         menuName = [menuNameText text];
         menuNameTable = menuName;
     }
@@ -41,20 +40,38 @@
         position = [NSNumber numberWithInt:[[positionText text] intValue]];
     }
     
-    [SDLDebugTool logInfo:@"cmdID = %d", [[SDLBrain getInstance] getCMDID]];
+    [commandsIssued addObject:[[[AddMenuOption alloc] initWithMenuName:menuNameTable menuId:[NSNumber numberWithInt:[[SmartDeviceLinkTester getInstance] getCmdID]]] autorelease]];
     
-    [commandsIssued addObject:[[[AddMenuOption alloc] initWithMenuName:menuNameTable menuId:[NSNumber numberWithInt:[[SDLBrain getInstance] getCMDID]]] autorelease]];
+    if (iconControl.selectedSegmentIndex == 0) {
+        SDLAddCommand *req = [SDLRPCRequestFactory buildAddCommandWithID:[NSNumber numberWithInt:[[SmartDeviceLinkTester getInstance] getCmdID]] menuName:menuName parentID:parentID position:position vrCommands:voiceCommand iconValue:[iconText text] iconType:nil correlationID:[[SmartDeviceLinkTester getInstance] getNextCorrID]];
+        
+        [[SmartDeviceLinkTester getInstance] sendAndPostRPCMessage:req];
+
+    }
+    else if (iconControl.selectedSegmentIndex == 1) {
+        SDLAddCommand *req = [SDLRPCRequestFactory buildAddCommandWithID:[NSNumber numberWithInt:[[SmartDeviceLinkTester getInstance] getCmdID]] menuName:menuName parentID:parentID position:position vrCommands:voiceCommand iconValue:[iconText text] iconType:[SDLImageType STATIC] correlationID:[[SmartDeviceLinkTester getInstance] getNextCorrID]];
+        
+        [[SmartDeviceLinkTester getInstance] sendAndPostRPCMessage:req];
+        
+    }
+    else {
+        SDLAddCommand *req = [SDLRPCRequestFactory buildAddCommandWithID:[NSNumber numberWithInt:[[SmartDeviceLinkTester getInstance] getCmdID]] menuName:menuName parentID:parentID position:position vrCommands:voiceCommand iconValue:[iconText text] iconType:[SDLImageType DYNAMIC] correlationID:[[SmartDeviceLinkTester getInstance] getNextCorrID]];
+        
+        [[SmartDeviceLinkTester getInstance] sendAndPostRPCMessage:req];
+
+    }
     
-    [SDLDebugTool logInfo:@"Added %@ to commandsIssued",[[commandsIssued lastObject] menuName]];
-    
-    [SDLDebugTool logInfo:@"Is index number %d",[commandsIssued indexOfObject:[commandsIssued lastObject]]];
-    
-    [[SDLBrain getInstance] addAdvancedCommandPressedwithMenuName:menuName position:position parentID:parentID vrCommands:voiceCommand];
-    
-    [SDLDebugTool logInfo:@"sent to Sync"];
+    [[SmartDeviceLinkTester getInstance] incCmdID];
     
     [menuNameText setText:@""];
     [addVRText setText:@""];
+    
+    //Go Back To RPC List View
+    [self.navigationController popToRootViewControllerAnimated:YES];
+    
+    //Go To Console View
+    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+    appDelegate.tabBarController.selectedViewController = [appDelegate.tabBarController.viewControllers objectAtIndex:1];
 }
 
 
@@ -83,6 +100,7 @@
     addVRText.delegate = self;
     parentIDText.delegate = self;
     positionText.delegate = self;
+    iconText.delegate = self;
 }
 
 -(void) dealloc {

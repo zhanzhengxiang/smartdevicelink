@@ -1,17 +1,23 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
+//  SpeakViewController.h
+//  SmartDeviceLinkTester
+//  Copyright (c) 2013 Ford Motor Company
 
 #import <UIKit/UIKit.h>
-#import "SDLBrain.h"
+#import "SmartDeviceLinkTester.h"
 
-@interface SpeakViewController : UIViewController <UITextViewDelegate> {
+@interface SpeakViewController : UIViewController <UITextFieldDelegate> {
     
-    IBOutlet UITextView *ttstext;
+    IBOutlet UITextField *speechField1;
+    IBOutlet UITextField *speechField2;
+    IBOutlet UITextField *speechField3;
+    IBOutlet UITextField *speechField4;
+    IBOutlet UISegmentedControl *speechType1;
+    IBOutlet UISegmentedControl *speechType2;
+    IBOutlet UISegmentedControl *speechType3;
+    IBOutlet UISegmentedControl *speechType4;
     
 }
 
--(IBAction)sendSpeakRPC:(id)sender;
--(IBAction)sendTTSChunks:(id)sender;
+-(IBAction)sendRPC:(id)sender;
 
 @end

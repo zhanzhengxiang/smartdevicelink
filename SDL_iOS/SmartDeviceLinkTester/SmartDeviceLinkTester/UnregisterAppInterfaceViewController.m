@@ -1,8 +1,9 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
+//  UnregisterAppInterfaceViewController.m
+//  SmartDeviceLinkTester
+//  Copyright (c) 2013 Ford Motor Company
 
 #import "UnregisterAppInterfaceViewController.h"
+#import "AppDelegate.h"
 
 @interface UnregisterAppInterfaceViewController ()
 
@@ -10,8 +11,18 @@
 
 @implementation UnregisterAppInterfaceViewController
 
--(IBAction)unregisterAppInterfacePressed:(id)sender {
-    [[SDLBrain getInstance] unregisterAppInterfacePressed];
+-(IBAction)sendRPC:(id)sender; {
+    
+    SDLUnregisterAppInterface *req = [SDLRPCRequestFactory buildUnregisterAppInterfaceWithCorrelationID: [[SmartDeviceLinkTester getInstance] getNextCorrID]];
+    
+    [[SmartDeviceLinkTester getInstance] sendAndPostRPCMessage:req];
+    
+    //Go Back To RPC List View
+    [self.navigationController popToRootViewControllerAnimated:YES];
+    
+    //Go To Console View
+    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+    appDelegate.tabBarController.selectedViewController = [appDelegate.tabBarController.viewControllers objectAtIndex:1];
 }
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil

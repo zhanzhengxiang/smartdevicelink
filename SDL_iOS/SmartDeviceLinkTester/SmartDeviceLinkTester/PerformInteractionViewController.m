@@ -1,8 +1,9 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
+//  PerformInteractionViewController.m
+//  SmartDeviceLinkTester
+//  Copyright (c) 2013 Ford Motor Company
 
 #import "PerformInteractionViewController.h"
+#import "AppDelegate.h"
 
 @interface PerformInteractionViewController ()
 
@@ -10,7 +11,7 @@
 
 @implementation PerformInteractionViewController
 
--(IBAction)performInteractionPressed:(id)sender {
+-(IBAction)sendRPC:(id)sender {
     
     NSArray *tempPrompt = [[initPromptText text] componentsSeparatedByString:@", "];
     NSMutableArray *initialPrompt = [[NSMutableArray alloc] init];
@@ -41,11 +42,18 @@
         im = [SDLInteractionMode BOTH];
     }
     
-    [[SDLBrain getInstance] performInteractionPressedwithInitialPrompt:initialPrompt initialText:[initialText text] interactionChoiceSetIDList:[NSArray arrayWithObject:[NSNumber numberWithInt:[[choiceIDText text] intValue]]] helpChunks:helpChunks timeoutChunks:timeoutChunks interactionMode:im timeout:[NSNumber numberWithDouble:(round([timeoutSlider value])*1000)]];
+    [[SmartDeviceLinkTester getInstance] performInteractionPressedwithInitialPrompt:initialPrompt initialText:[initialText text] interactionChoiceSetIDList:[NSArray arrayWithObject:[NSNumber numberWithInt:[[choiceIDText text] intValue]]] helpChunks:helpChunks timeoutChunks:timeoutChunks interactionMode:im timeout:[NSNumber numberWithDouble:(round([timeoutSlider value])*1000)]];
     
     [initialPrompt release];
     [helpChunks release];
     [timeoutChunks release];
+    
+    //Go Back To RPC List View
+    [self.navigationController popToRootViewControllerAnimated:YES];
+    
+    //Go To Console View
+    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+    appDelegate.tabBarController.selectedViewController = [appDelegate.tabBarController.viewControllers objectAtIndex:1];
 }
 
 

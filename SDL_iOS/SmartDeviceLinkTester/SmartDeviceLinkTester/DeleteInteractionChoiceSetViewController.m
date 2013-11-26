@@ -1,8 +1,9 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
+//  DeleteInteractionChoiceSetViewController.m
+//  SmartDeviceLinkTester
+//  Copyright (c) 2013 Ford Motor Company
 
 #import "DeleteInteractionChoiceSetViewController.h"
+#import "AppDelegate.h"
 
 @interface DeleteInteractionChoiceSetViewController ()
 
@@ -11,8 +12,18 @@
 @implementation DeleteInteractionChoiceSetViewController
 
 
--(IBAction)deleteInteractionPressed:(id)sender {
-    [[SDLBrain getInstance] deleteInteractionChoiceSetPressedWithID:[NSNumber numberWithInt:[[idText text] intValue]]];
+-(IBAction)sendRPC:(id)sender
+{
+    SDLDeleteInteractionChoiceSet *req = [SDLRPCRequestFactory buildDeleteInteractionChoiceSetWithID:[NSNumber numberWithInt:[[idText text] intValue]] correlationID: [[SmartDeviceLinkTester getInstance] getNextCorrID]];
+    
+    [[SmartDeviceLinkTester getInstance] sendAndPostRPCMessage:req];
+    
+    //Go Back To RPC List View
+    [self.navigationController popToRootViewControllerAnimated:YES];
+    
+    //Go To Console View
+    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+    appDelegate.tabBarController.selectedViewController = [appDelegate.tabBarController.viewControllers objectAtIndex:1];
 }
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField {

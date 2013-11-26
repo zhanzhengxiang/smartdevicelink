@@ -1,9 +1,9 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
+//  DeleteInteractionChoiceSetViewController.h
+//  SmartDeviceLinkTester
+//  Copyright (c) 2013 Ford Motor Company
 
 #import <UIKit/UIKit.h>
-#import "SDLBrain.h"
+#import "SmartDeviceLinkTester.h"
 
 @interface DeleteInteractionChoiceSetViewController : UIViewController <UITextFieldDelegate> {
     
@@ -11,6 +11,6 @@
     
 }
 
--(IBAction)deleteInteractionPressed:(id)sender;
+-(IBAction)sendRPC:(id)sender;
 
 @end

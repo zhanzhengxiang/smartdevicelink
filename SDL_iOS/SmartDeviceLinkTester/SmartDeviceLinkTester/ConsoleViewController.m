@@ -1,9 +1,9 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
+//  ConsoleViewController.m
+//  SmartDeviceLinkTester
+//  Copyright (c) 2013 Ford Motor Company
 
 #import "ConsoleViewController.h"
-#import "SDLBrain.h"
+#import "SmartDeviceLinkTester.h"
 
 
 @interface ConsoleViewController ()
@@ -26,7 +26,6 @@
 
 -(void) postConsoleControllerMainThread:(NSNotification *)notif {
     [consoleController appendMessage:[notif object]];
-
 }
 
 -(void) postConsoleController:(NSNotification *)notif{
@@ -34,22 +33,28 @@
 }
 
 
-
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(postConsoleController:) name:@"NewConsoleControllerObject" object:nil];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(postConsoleController:) name:@"onRPCResponse" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(postConsoleController:) name:@"consoleLog" object:nil];
     
     
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
         self.title = NSLocalizedString(@"Console", @"Console");
-        self.tabBarItem.image = [UIImage imageNamed:@"cog_02"];
+        self.tabBarItem.image = [UIImage imageNamed:@"database"];
     }
 
     return self;
+}
+
+- (void) viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    if (consoleView.contentSize.height > consoleView.frame.size.height)
+    {
+        CGPoint offset = CGPointMake(0, consoleView.contentSize.height - consoleView.frame.size.height);
+        [self.consoleView setContentOffset:offset animated:YES];
+    }
 }
 
 

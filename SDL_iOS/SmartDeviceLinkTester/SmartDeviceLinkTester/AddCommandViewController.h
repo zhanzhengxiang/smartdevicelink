@@ -1,9 +1,9 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
+//  AddCommandViewController.h
+//  SmartDeviceLinkTester
+//  Copyright (c) 2013 Ford Motor Company
 
 #import <UIKit/UIKit.h>
-#import "SDLBrain.h"
+#import "SmartDeviceLinkTester.h"
 #import "AddMenuOption.h"
 
 @interface AddCommandViewController : UIViewController <UITextFieldDelegate> {
@@ -12,12 +12,13 @@
     IBOutlet UITextField *addVRText;
     IBOutlet UITextField *parentIDText;
     IBOutlet UITextField *positionText;
+    IBOutlet UITextField *iconText;
     
-   
-    
+    IBOutlet UISegmentedControl *iconControl;
+
 }
 
--(IBAction)addCommandPressed:(id)sender;
+-(IBAction)sendRPC:(id)sender;
 
 @end
 

@@ -1,6 +1,6 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
+//  UnsubscribeButtonViewController.m
+//  SmartDeviceLinkTester
+//  Copyright (c) 2013 Ford Motor Company
 
 #import "UnsubscribeButtonViewController.h"
 
@@ -68,7 +68,7 @@
         buttonSelected = [SDLButtonName PRESET_9];
     }
     
-    [[SDLBrain getInstance] unsubscribeButtonPressed:buttonSelected];
+    [[SmartDeviceLinkTester getInstance] unsubscribeButtonPressed:buttonSelected];
     [self updateTable];
 }
 

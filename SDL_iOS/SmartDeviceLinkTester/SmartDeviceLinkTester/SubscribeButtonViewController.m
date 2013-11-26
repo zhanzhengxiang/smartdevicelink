@@ -1,8 +1,9 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
+//  SubscribeButtonViewController.m
+//  SmartDeviceLinkTester
+//  Copyright (c) 2013 Ford Motor Company
 
 #import "SubscribeButtonViewController.h"
+#import "AppDelegate.h"
 
 @interface SubscribeButtonViewController ()
 
@@ -62,7 +63,14 @@
         buttonSelected = [SDLButtonName PRESET_9];
     }
     
-    [[SDLBrain getInstance] subscribeButtonPressed:buttonSelected];
+    [[SmartDeviceLinkTester getInstance] subscribeButtonPressed:buttonSelected];
+    
+    //Go Back To RPC List View
+    [self.navigationController popToRootViewControllerAnimated:YES];
+    
+    //Go To Console View
+    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+    appDelegate.tabBarController.selectedViewController = [appDelegate.tabBarController.viewControllers objectAtIndex:1];
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {

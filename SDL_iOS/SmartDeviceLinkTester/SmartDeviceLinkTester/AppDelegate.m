@@ -1,63 +1,49 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
+//  AppDelegate.m
+//  SmartDeviceLinkTester
+//  Copyright (c) 2013 Ford Motor Company
 
 #import "AppDelegate.h"
 
-
 @implementation AppDelegate
 
-@synthesize window = _window;
-@synthesize tabBarController = _tabBarController;
+@synthesize window;
+@synthesize tabBarController;
 
 
 - (void)dealloc
 {
-    [_window release];
-    [_tabBarController release];
+    [self.window release];
+    [self.tabBarController release];
     [super dealloc];
 }
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
+    
     // Override point for customization after application launch.
-    userTestViewController = [[[UserTestViewController alloc] initWithNibName:@"UserTestViewController" bundle:nil] autorelease];
-    UIViewController *rpcTestViewController = [[RPCTestViewController alloc] initWithStyle:UITableViewStyleGrouped];
-    rpcTestViewController.view.backgroundColor=[UIColor colorWithRed:(255/255.) green:(195/255.) blue:(135/255.) alpha:1];
-    autoTestViewController = [[[AutoTestViewController alloc] initWithNibName:@"AutoTestViewController" bundle:nil] autorelease];
+    rpcTestViewController = [[RPCTestViewController alloc] initWithStyle:UITableViewStyleGrouped];
     consoleViewController = [[[ConsoleViewController alloc] initWithNibName:@"ConsoleViewController" bundle:nil] autorelease];
 
     navController = nil;
     navController = [[UINavigationController alloc] initWithRootViewController:rpcTestViewController];
+    
 
     [rpcTestViewController release];
     
     self.tabBarController = [[[UITabBarController alloc] init] autorelease];
-    self.tabBarController.viewControllers = [NSArray arrayWithObjects:userTestViewController, navController, autoTestViewController,consoleViewController, nil];
-    self.tabBarController.selectedIndex = 3;
+    
+    self.tabBarController.viewControllers = [NSArray arrayWithObjects:navController, consoleViewController, nil];
+    
+    self.tabBarController.selectedIndex = 1;
     self.window.rootViewController = self.tabBarController;
     [self.window makeKeyAndVisible];
     
-    [[SDLBrain getInstance] setupProxy];
-    
-    NSURL *url = (NSURL *)[launchOptions valueForKey:UIApplicationLaunchOptionsURLKey];
-    if (url != nil && [url isFileURL]) {
-        [autoTestViewController handleOpenURL:url];
-    }
-    
-    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:nil];
-    
+    [[SmartDeviceLinkTester getInstance] setupProxy];
     
     return YES;
 }
 
--(BOOL) application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation {
-    if (url!= nil && [url isFileURL]) {
-            [autoTestViewController handleOpenURL:url];    
-    }
-    return YES;
-}
 
 - (void)applicationWillResignActive:(UIApplication *)application
 {
@@ -67,8 +53,6 @@
 
 - (void)applicationDidEnterBackground:(UIApplication *)application
 {
-    [SDLDebugTool logInfo:@"App did enter background"];
-
     // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later. 
     // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
 }
@@ -84,29 +68,12 @@
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application
-{
-    [SDLDebugTool logInfo:@"will terminate"];
+{        
+    // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     
     [navController release];
     navController = nil;
-
-    NSLog(@"did terminate");
-
-    // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
 }
 
-/*
-// Optional UITabBarControllerDelegate method.
-- (void)tabBarController:(UITabBarController *)tabBarController didSelectViewController:(UIViewController *)viewController
-{
-}
-*/
-
-/*
-// Optional UITabBarControllerDelegate method.
-- (void)tabBarController:(UITabBarController *)tabBarController didEndCustomizingViewControllers:(NSArray *)viewControllers changed:(BOOL)changed
-{
-}
-*/
 
 @end

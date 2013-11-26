@@ -1,6 +1,6 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
+//  DeleteCommandViewController.m
+//  SmartDeviceLinkTester
+//  Copyright (c) 2013 Ford Motor Company
 
 #import "DeleteCommandViewController.h"
 
@@ -14,7 +14,7 @@
 @implementation DeleteCommandViewController
 
 -(void)updateTable {
-    [SDLDebugTool logInfo:@"reloadData with Table"];
+//    [SDLDebugTool logInfo:@"reloadData with Table"];
     [commandsTable reloadData];
 }
 
@@ -27,9 +27,9 @@
     
     AddMenuOption *amo = [self returnAddMenuOptionWithMenuName:chosenCommand];
     
-    [SDLDebugTool logInfo:@"Menu Option Selected = %@", [amo menuName]];
+//    [SDLDebugTool logInfo:@"Menu Option Selected = %@", [amo menuName]];
     
-    [[SDLBrain getInstance] deleteCommandPressed:[amo menuID]];
+    [[SmartDeviceLinkTester getInstance] deleteCommandPressed:[amo menuID]];
      
     [commandsIssued removeObject:amo];
     [self updateTable];
@@ -63,32 +63,23 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    
-    [SDLDebugTool logInfo:@"Got to cellForRowAtIndexPath"];
     static NSString *CellIdentifier = @"Cell";
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     
     if (cell == nil) { 
         cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier] autorelease]; 
-    } 
-    
-    [SDLDebugTool logInfo:@"right before figuring out cell text"];
-    [SDLDebugTool logInfo:@"indexPath = %d", indexPath.row];
+    }
     
     @try {
-        [SDLDebugTool logInfo:@"about to print %@",[[commandsIssued objectAtIndex:indexPath.row] menuName]];
-        
         // Configure the cell. 
         cell.textLabel.text = [NSString stringWithFormat:@"%@",[[commandsIssued objectAtIndex:indexPath.row] menuName]]; 
     }
     @catch (NSException *exception) {
-        [SDLDebugTool logInfo:@"Failed to print out name of commandsIssued"];
+
     }
     @finally {
-        [SDLDebugTool logInfo:@"Finally"];
+
     }
-    
-    [SDLDebugTool logInfo:@"finished cellForRowAtIndexPath"];
     
     return cell;
 }

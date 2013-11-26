@@ -1,11 +1,11 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
+//  PerformInteractionViewController.h
+//  SmartDeviceLinkTester
+//  Copyright (c) 2013 Ford Motor Company
 
 #import <UIKit/UIKit.h>
-#import "SDLBrain.h"
-#import "SDLInteractionMode.h"
-#import "SDLTTSChunkFactory.h"
+#import <SmartDeviceLink/SmartDeviceLink.h>
+
+#import "SmartDeviceLinkTester.h"
 
 @interface PerformInteractionViewController : UIViewController <UITextFieldDelegate, UITextViewDelegate> {
     
@@ -25,6 +25,6 @@
 }
 
 -(IBAction)displayTimeoutSlider:(id)sender;
--(IBAction)performInteractionPressed:(id)sender;
+-(IBAction)sendRPC:(id)sender;
 
 @end

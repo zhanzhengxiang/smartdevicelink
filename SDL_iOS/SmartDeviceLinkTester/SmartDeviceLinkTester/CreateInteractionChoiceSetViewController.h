@@ -1,10 +1,11 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
+//  CreateInteractionChoiceSetViewController.h
+//  SmartDeviceLinkTester
+//  Copyright (c) 2013 Ford Motor Company
 
 #import <UIKit/UIKit.h>
-#import "SDLBrain.h"
-#import "SDLChoice.h"
+#import <SmartDeviceLink/SmartDeviceLink.h>
+
+#import "SmartDeviceLinkTester.h"
 
 @interface CreateInteractionChoiceSetViewController : UIViewController <UITextViewDelegate, UITextFieldDelegate> {
     
@@ -15,6 +16,6 @@
     
 }
 
--(IBAction)createInteractionPressed:(id)sender;
+-(IBAction)sendRPC:(id)sender;
 
 @end

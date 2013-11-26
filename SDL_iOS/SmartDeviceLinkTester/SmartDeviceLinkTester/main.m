@@ -1,6 +1,6 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
+//  main.m
+//  SmartDeviceLinkTester
+//  Copyright (c) 2013 Ford Motor Company
 
 #import <UIKit/UIKit.h>
 

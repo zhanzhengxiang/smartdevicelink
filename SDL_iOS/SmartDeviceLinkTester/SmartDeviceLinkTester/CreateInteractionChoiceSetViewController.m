@@ -1,8 +1,9 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
+//  CreateInteractionChoiceSetViewController.m
+//  SmartDeviceLinkTester
+//  Copyright (c) 2013 Ford Motor Company
 
 #import "CreateInteractionChoiceSetViewController.h"
+#import "AppDelegate.h"
 
 @interface CreateInteractionChoiceSetViewController ()
 
@@ -10,22 +11,30 @@
 
 @implementation CreateInteractionChoiceSetViewController
 
--(IBAction)createInteractionPressed:(id)sender {
+-(IBAction)sendRPC:(id)sender {
     NSString *choicestring = [choiceSetView text];
     NSArray *tempchoices = [choicestring componentsSeparatedByString:@", "];
     
     NSMutableArray *choices = [[NSMutableArray alloc] init];
     for (int i = 0; i < [tempchoices count]; i++) {
-        SDLChoice *cho = [[SDLChoice alloc] init];
-        cho.menuName = [tempchoices objectAtIndex:i];
-        cho.choiceID = [NSNumber numberWithInt: choiceID++];
-        cho.vrCommands = [NSArray arrayWithObject:[tempchoices objectAtIndex:i]];
-        [choices addObject:cho];
-        [cho release];
+        SDLChoice *choice = [[SDLChoice alloc] init];
+        choice.menuName = [tempchoices objectAtIndex:i];
+        choice.choiceID = [NSNumber numberWithInt: choiceID++];
+        choice.vrCommands = [[NSArray arrayWithObject:[tempchoices objectAtIndex:i]] mutableCopy];
+        [choices addObject:choice];
+        [choice release];
     }
     
-
-    [[SDLBrain getInstance] createInteractionChoiceSetPressedWithID:[NSNumber numberWithInt:[[idText text] intValue]] choiceSet:choices];
+    SDLCreateInteractionChoiceSet *req = [SDLRPCRequestFactory buildCreateInteractionChoiceSetWithID:[NSNumber numberWithInt:[[idText text] intValue]] choiceSet:choices correlationID:[[SmartDeviceLinkTester getInstance] getNextCorrID]];
+    
+    [[SmartDeviceLinkTester getInstance] sendAndPostRPCMessage:req];
+    
+    //Go Back To RPC List View
+    [self.navigationController popToRootViewControllerAnimated:YES];
+    
+    //Go To Console View
+    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+    appDelegate.tabBarController.selectedViewController = [appDelegate.tabBarController.viewControllers objectAtIndex:1];
 }
 
 
