@@ -75,7 +75,7 @@ FFW.RPCClient = Em.Object
             this.observer = observer;
             this.idStart = startId;
 
-            this.socket = new WebSocket(this.url, 'sample');
+            this.socket = new WebSocket(this.url);
 
             var self = this;
 
