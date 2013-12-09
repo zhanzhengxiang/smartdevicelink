@@ -1,6 +1,6 @@
 package com.smartdevicelink.proxy.rpc.enums;
 
-public enum smartDeviceLinkConnectionState {
+public enum SmartDeviceLinkConnectionState {
 	SMARTDEVICELINK_CONNECTED,
 	SMARTDEVICELINK_DISCONNECTED;
 }
