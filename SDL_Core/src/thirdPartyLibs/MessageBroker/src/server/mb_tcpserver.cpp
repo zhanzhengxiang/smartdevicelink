@@ -65,7 +65,7 @@ namespace NsMessageBroker
       char buf[RECV_BUFFER_LENGTH];
 
       nb = recv(fd, buf, MAX_RECV_DATA, 0);
-      DBG_MSG(("Received from %d: %s, length: %d\n", fd, msg.c_str(), nb));
+      DBG_MSG(("Received from %d: %s, length: %d\n", fd, buf, nb));
       if(nb > 0)
       {
          if (isWebSocket(fd))
