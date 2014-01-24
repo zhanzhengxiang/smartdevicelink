@@ -23,6 +23,8 @@ Run SmartDeviceLinkTester
 
 How to build the head unit app
 ======================
+Ubuntu linux is recommended
+
 apt-get install build-essential libssl-dev cmake libbluetooth-dev chromium-browser
 
 cd SDL_Core
