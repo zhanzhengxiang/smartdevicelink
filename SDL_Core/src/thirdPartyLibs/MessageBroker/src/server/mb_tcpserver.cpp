@@ -97,6 +97,8 @@ namespace NsMessageBroker
                std::string wsKey = pReceivingBuffer->substr(webSocketKeyPos+19, 24);
                mWebSocketHandler.handshake_0405(wsKey);
                handshakeResponse += wsKey;
+               // newtonian : Identifies the protocol(temporary)
+               handshakeResponse += "\r\nSec-WebSocket-Protocol: sample";
                handshakeResponse += "\r\n\r\n";
                pReceivingBuffer->clear();
                std::list<int>::iterator acceptedClientIt = find(m_AcceptedClients.begin(), m_AcceptedClients.end(), fd);
