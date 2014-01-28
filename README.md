@@ -86,3 +86,24 @@ Let them stay connected.(They are easily disconnected)
 
 ### How to check
 If they are linked, the android app plays the music.
+
+How to play Stitcher via BlueTooth
+======================
+### Starting the head unit app.
+cd SDL_Core/src/appMain
+
+./smartDeviceLinkCore
+
+Click 'i' button at the bottom.
+
+### Starting Stitcher.
+Click Stitcher.
+
+### Paring and Connection
+Pair the phone and the box.
+
+Let them stay connected.(They are easily disconnected)
+
+### How to check
+The browser at the head unit adds 'Stitcher' button.
+Click the 'Stitcher' button and control the Stitcher.
