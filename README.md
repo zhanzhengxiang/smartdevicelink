@@ -96,6 +96,33 @@ If they are linked, the android app plays the music.
 
 How to play Stitcher via BlueTooth
 ======================
+### Paring and Connection
+Pair the phone and the box.
+
+### Starting Stitcher.
+Take an android phone.
+
+Goto Google play store and download Stitcher.
+
+Start Stitcher.
+
+### Starting the android app.
+Click SmartDeviceLinkTester
+
+You'll see 'Please select properties' dialogue.
+
+(If you don't see, click menu and Exit. and run it again.)
+
+Check Bluetooth
+
+Click OK
+
+Click the menu button
+
+Click startProxy
+
+Click Allow button on the dialogue box
+
 ### Starting the head unit app.
 cd SDL_Core/src/appMain
 
@@ -103,15 +130,13 @@ cd SDL_Core/src/appMain
 
 Click 'i' button at the bottom.
 
-### Starting Stitcher.
-Take an android phone.
-Goto Google play store and download Stitcher.
-Start Stitcher.
+Click 'Change Devices' button.
 
-### Paring and Connection
-Pair the phone and the box.
+Wait until you see a phone item on the screen
 
-Let them stay connected.(They are easily disconnected)
+Click the phone item
+
+Click 'Stitcher-'
 
 ### How to check
 The browser at the head unit adds 'Stitcher' button.
