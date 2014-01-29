@@ -35,6 +35,10 @@ make
 
 If you see the chromium browser and a warning message, it works.
 
+###How to enable the log
+Append "-DDEBUG_ON -DDEBUG_MB_ON" to CMAKE_CXX_FLAGS in SDL_Core/CMakeList.txt
+Repeate above procedure
+
 How to test via WIFI
 ======================
 ### Starting the head unit app.
