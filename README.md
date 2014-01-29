@@ -104,7 +104,9 @@ cd SDL_Core/src/appMain
 Click 'i' button at the bottom.
 
 ### Starting Stitcher.
-Click Stitcher.
+Take an android phone.
+Goto Google play store and download Stitcher.
+Start Stitcher.
 
 ### Paring and Connection
 Pair the phone and the box.
