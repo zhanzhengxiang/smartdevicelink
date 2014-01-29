@@ -37,7 +37,10 @@ If you see the chromium browser and a warning message, it works.
 
 ###How to enable the log
 Append "-DDEBUG_ON -DDEBUG_MB_ON" to CMAKE_CXX_FLAGS in SDL_Core/CMakeList.txt
+
 Repeate above procedure
+
+Logs are diffused to 3 ways - stdout, SmartDeviceLinkCore.log, and SmartDeivceLinkCoreWarn.log
 
 How to test via WIFI
 ======================
