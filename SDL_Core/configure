@@ -1,0 +1,50 @@
+#!/bin/bash
+
+EXTERNAL_DIR=external
+
+function configure_common(){
+	sudo apt-get install graphviz doxygen
+	mkdir -p $EXTERNAL_DIR
+}
+
+if [ ! -n "$1" ]
+then
+	TARGET=host
+	echo Host build...
+else
+	TARGET=$1
+	echo Target build:$TARGET...
+fi
+
+case $TARGET in
+	help)
+		echo "configure tool v1.0 by Newton Kim"
+		echo "Usage: ./configure {target}"
+		echo "Targets:"
+		echo "    imx6 : Freescale iMX.6"
+		echo "    itj6 : TI j6"
+		echo "    host : This box"
+		echo "    help : Help message(This screen)"
+		exit 1
+		;;
+	host|imx6|tij6)
+		. ./config.$TARGET
+		;;
+	*)
+		Error: Unknown target $TARGET
+		exit 0
+		;;
+esac
+
+configure_common 
+
+prepare_toolchain
+
+prepare_rootfs
+
+configure_arguments
+
+rm -rf build
+mkdir build
+cd build
+cmake .. $CMAKE_CONFIGURE

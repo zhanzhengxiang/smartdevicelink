@@ -1,0 +1,8 @@
+SET(CMAKE_C_COMPILER @c_compiler@)
+SET(CMAKE_CXX_COMPILER @cxx_compiler@)
+#SET(CMAKE_AR @ar@)
+SET(CMAKE_SYSTEM_PREFIX_PATH @system_prefix@)
+SET(CMAKE_FIND_ROOT_PATH @system_prefix@)
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-march=@arch@")
+set(OPENSSL_SSL_LIBRARY @openssl_ssl_library@)
+

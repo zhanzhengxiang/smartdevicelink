@@ -1,0 +1,14 @@
+#!/bin/bash
+
+function prepare_toolchain(){
+	sudo apt-get install build-essential chromium-browser libbluetooth-dev libssl-dev
+	sudo apt-get install cmake
+}
+
+function prepare_rootfs(){
+	echo Nothing to do for prepare_rootfs
+}
+
+function configure_arguments(){
+	CMAKE_CONFIGURE=""
+}

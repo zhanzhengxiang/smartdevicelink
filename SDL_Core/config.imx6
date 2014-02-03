@@ -1,0 +1,116 @@
+#!/bin/bash
+
+function prepare_toolchain(){
+	HOST_ARCH=`uname -m`
+	if [ "$HOST_ARCH" == "x86_64" ]
+	then
+		sudo apt-get install lib32z1-dev
+	else
+		sudo apt-get install libz1g-dev
+	fi
+	PREFIX=arm-fsl-linux-gnueabi
+	TOOLCHAIN_ARCHIVE="fsl-linaro-toolchain.tar.gz"
+	TOOLCHAIN_ROOT="/opt/toolchain/fsl-linaro-toolchain"
+	TOOLCHAIN_PATH="$TOOLCHAIN_ROOT/bin/"
+
+	if [ ! -d "$TOOLCHAIN_ROOT" ]
+	then
+		sudo mkdir /opt/toolchain
+		sudo tar -zxvf $EXTERNAL_DIR/$TOOLCHAIN_ARCHIVE -C /opt/toolchain
+	fi
+}
+
+function prepare_rootfs(){
+	cd $EXTERNAL_DIR
+	ROOTFS_DIR=armfsl_sysroot
+	ROOTFS_ARCHIVE="armel_sysroot.tar.bz2"
+	for TARBALL in $ROOTFS_ARCHIVE
+	do
+		if [ ! -f "$TARBALL" ]
+		then
+			echo smbget --workgroup=AC --username=isodev --password=start\$55  smb://krsefs01/ISODev/yocto\ cross\ compile\ \(HF\)/$TARBALL || exit 1
+			smbget --workgroup=AC --username=isodev --password=start\$55  smb://krsefs01/ISODev/yocto\ cross\ compile\ \(HF\)/$TARBALL || exit 1
+		fi
+	done
+	cd -
+	if [ ! -d "$ROOTFS_DIR" ]
+	then
+		mkdir -p $ROOTFS_DIR/sysroot
+		cd $ROOTFS_DIR/sysroot
+		for TARBALL in $ROOTFS_ARCHIVE
+		do
+			tar -jxvf ../../$EXTERNAL_DIR/$TARBALL
+		done
+		cd -
+	fi
+	mv $ROOTFS_DIR/sysroot/usr/lib/libc.so libc.so
+	sed "s#/usr/lib/##g;s#/lib/##g" < libc.so > $ROOTFS_DIR/sysroot/usr/lib/libc.so
+#	rm $ROOTFS_DIR/sysroot/usr/lib/libc.a
+	mv $ROOTFS_DIR/sysroot/usr/lib/libpthread.so libpthread.so
+	sed "s#/usr/lib/##g;s#/lib/##g" < libpthread.so > $ROOTFS_DIR/sysroot/usr/lib/libpthread.so
+	rm -f $ROOTFS_DIR/sysroot/usr/lib/librt.so
+	rm -f $ROOTFS_DIR/sysroot/usr/lib/librt.a
+}
+
+function configure_arguments_inline(){
+	CMAKE_CONFIGURE="-DCMAKE_SYSTEM_NAME=Linux "
+	if [ ! -n "$TOOLCHAIN_PATH" ]
+	then
+		CMAKE_CONFIGURE+="-DCMAKE_C_COMPILER=`which $PREFIX-gcc` "
+		CMAKE_CONFIGURE+="-DCMAKE_CXX_COMPILER=`which $PREFIX-g++` "
+		CMAKE_CONFIGURE+="-DCMAKE_AR=`which $PREFIX-ar` "
+#		CMAKE_CONFIGURE+="-DCMAKE_C_LINK_EXECUTABLE=`which $PREFIX-ld` "
+#		CMAKE_CONFIGURE+="-DCMAKE_CXX_LINK_EXECUTABLE=`which $PREFIX-g++` "
+	else
+		CMAKE_CONFIGURE+="-DCMAKE_C_COMPILER=$TOOLCHAIN_PATH$PREFIX-gcc "
+		CMAKE_CONFIGURE+="-DCMAKE_CXX_COMPILER=$TOOLCHAIN_PATH$PREFIX-g++ "
+		CMAKE_CONFIGURE+="-DCMAKE_AR=$TOOLCHAIN_PATH$PREFIX-ar "
+#		CMAKE_CONFIGURE+="-DCMAKE_C_LINK_EXECUTABLE=$TOOLCHAIN_PATH$PREFIX-ld "
+#		CMAKE_CONFIGURE+="-DCMAKE_CXX_LINK_EXECUTABLE=$TOOLCHAIN_PATH$PREFIX-g++ "
+	fi
+#	CMAKE_CONFIGURE+="-DCMAKE_FIND_ROOT_PATH=$PWD/$ROOTFS_DIR/sysroot "
+#	CMAKE_CONFIGURE+="-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER "
+#	CMAKE_CONFIGURE+="-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY "
+#	CMAKE_CONFIGURE+="-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY "
+	CMAKE_CONFIGURE+="-DCMAKE_SYSTEM_PREFIX_PATH=$PWD/$ROOTFS_DIR/sysroot "
+	CMAKE_CONFIGURE+="-DCMAKE_SYSTEM_INCLUDE_PATH=$PWD/$ROOTFS_DIR/sysroot/usr/include "
+	CMAKE_CONFIGURE+="-DCMAKE_SYSTEM_LIBRARY_PATH=$PWD/$ROOTFS_DIR/sysroot/usr/lib "
+	CMAKE_CONFIGURE+="-DOPENSSL_INCLUDE_DIR=$PWD/$ROOTFS_DIR/sysroot/usr/include "
+	CMAKE_CONFIGURE+="-DOPENSSL_LIBRARIES=$PWD/$ROOTFS_DIR/sysroot/usr/lib"
+}
+
+function configure_arguments(){
+	if [ ! -n "$TOOLCHAIN_PATH" ]
+	then
+		CMAKE_C_COMPILER=`which $PREFIX-gcc` 
+		CMAKE_CXX_COMPILER=`which $PREFIX-g++` 
+		CMAKE_AR=`which $PREFIX-ar` 
+		CMAKE_C_LINK_EXECUTABLE=`which $PREFIX-gcc` 
+		CMAKE_CXX_LINK_EXECUTABLE=`which $PREFIX-g++` 
+	else
+		CMAKE_C_COMPILER=$TOOLCHAIN_PATH$PREFIX-gcc 
+		CMAKE_CXX_COMPILER=$TOOLCHAIN_PATH$PREFIX-g++ 
+		CMAKE_AR=$TOOLCHAIN_PATH$PREFIX-ar 
+		CMAKE_C_LINK_EXECUTABLE=$TOOLCHAIN_PATH$PREFIX-gcc
+		CMAKE_CXX_LINK_EXECUTABLE=$TOOLCHAIN_PATH$PREFIX-g++ 
+	fi
+#	CMAKE_FIND_ROOT_PATH=$PWD/$ROOTFS_DIR/sysroot 
+#	CMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER 
+#	CMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY 
+#	CMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY 
+	CMAKE_SYSTEM_PREFIX_PATH=$PWD/$ROOTFS_DIR/sysroot 
+	CMAKE_SYSTEM_INCLUDE_PATH=$PWD/$ROOTFS_DIR/sysroot/usr/include 
+	CMAKE_SYSTEM_LIBRARY_PATH=$PWD/$ROOTFS_DIR/sysroot/usr/lib 
+	CMAKE_OPENSSL_SSL_LIBRARY=$PWD/$ROOTFS_DIR/sysroot/usr/lib/libssl.so
+	sed "s#@arch@#armv7-a#g;
+		s#@c_compiler@#$CMAKE_C_COMPILER#g;
+		s#@cxx_compiler@#$CMAKE_CXX_COMPILER#g;
+		s#@ar@#$CMAKE_AR#g;
+		s#@system_prefix@#$CMAKE_SYSTEM_PREFIX_PATH#g;
+		s#@openssl_ssl_library@#$CMAKE_OPENSSL_SSL_LIBRARY#g;
+	" < toolchain.cmake.in > toolchain.cmake
+	CMAKE_CONFIGURE="-DCMAKE_TOOLCHAIN_FILE=../toolchain.cmake"
+}
+export PKG_CONFIG_PATH=$PWD/$ROOTFS_DIR/sysroot/usr/lib/pkgconfig
+export PKG_CONFIG_LIBDIR=$PWD/$ROOTFS_DIR/sysroot/usr/lib/pkgconfig
+
