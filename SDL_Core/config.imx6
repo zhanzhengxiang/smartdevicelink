@@ -50,6 +50,7 @@ function prepare_rootfs(){
 	sed "s#/usr/lib/##g;s#/lib/##g" < libpthread.so > $ROOTFS_DIR/sysroot/usr/lib/libpthread.so
 	rm -f $ROOTFS_DIR/sysroot/usr/lib/librt.so
 	rm -f $ROOTFS_DIR/sysroot/usr/lib/librt.a
+	rm -rf $ROOTFS_DIR/sysroot/usr/include/json
 }
 
 function configure_arguments_inline(){
@@ -107,6 +108,8 @@ function configure_arguments(){
 		s#@cxx_compiler@#$CMAKE_CXX_COMPILER#g;
 		s#@ar@#$CMAKE_AR#g;
 		s#@system_prefix@#$CMAKE_SYSTEM_PREFIX_PATH#g;
+		s#@system_include@#$CMAKE_SYSTEM_INCLUDE_PATH#g;
+		s#@system_library@#$CMAKE_SYSTEM_LIBRARY_PATH#g;
 		s#@openssl_ssl_library@#$CMAKE_OPENSSL_SSL_LIBRARY#g;
 	" < toolchain.cmake.in > toolchain.cmake
 	CMAKE_CONFIGURE="-DCMAKE_TOOLCHAIN_FILE=../toolchain.cmake"
