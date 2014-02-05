@@ -38,6 +38,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <errno.h>
 
 #include "IDeviceAdapterListener.hpp"
 #include "IHandleGenerator.hpp"
