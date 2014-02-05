@@ -23,17 +23,42 @@ Run SmartDeviceLinkTester
 
 How to build the head unit app
 ======================
+###Compiling for PC-easy way
+Ubuntu linux is recommended
+
+./configure
+
+(If it is the first time to run configure, ./confgure --env)
+
+make -C build -j4
+
+###Compiling for PC-custom way
 Ubuntu linux is recommended
 
 apt-get install build-essential libssl-dev cmake libbluetooth-dev chromium-browser
 
 cd SDL_Core
 
-cmake .
+mkdir build
+
+cd build
+
+cmake ..
 
 make
 
 If you see the chromium browser and a warning message, it works.
+
+###Cross-compiling for iMX6
+Ubuntu linux is recommended
+
+you need a root file system and a cross tool chain for iMX6
+
+./configure imx6
+
+(If it is the first time to run configure, ./confgure imx6 --env)
+
+make -C build -j4
 
 ###How to enable the log
 Append "-DDEBUG_ON -DDEBUG_MB_ON" to CMAKE_CXX_FLAGS in SDL_Core/CMakeList.txt
@@ -71,7 +96,7 @@ If they are linked, the android app plays the music.
 How to test via BlueTooth
 ======================
 ### Starting the head unit app.
-cd SDL_Core/src/appMain
+cd SDL_Core/build/src/appMain
 
 ./smartDeviceLinkCore
 
@@ -124,7 +149,7 @@ Click startProxy
 Click Allow button on the dialogue box
 
 ### Starting the head unit app.
-cd SDL_Core/src/appMain
+cd SDL_Core/build/src/appMain
 
 ./smartDeviceLinkCore
 
