@@ -16,15 +16,19 @@ else
 	echo Target build:$TARGET...
 fi
 
+OPT=$2
+
 case $TARGET in
 	help)
 		echo "configure tool v1.0 by Newton Kim"
-		echo "Usage: ./configure {target}"
-		echo "Targets:"
+		echo "Usage: ./configure {target} {option}"
+		echo "Targets"
 		echo "    imx6 : Freescale iMX.6"
 		echo "    itj6 : TI j6"
 		echo "    host : This box"
 		echo "    help : Help message(This screen)"
+		echo "Options"
+		echo "    --env : sets up environment for building"
 		exit 1
 		;;
 	host|imx6|tij6)
@@ -36,9 +40,11 @@ case $TARGET in
 		;;
 esac
 
-configure_common 
-
-prepare_toolchain
+if [ "$OPT" == "--env" ]
+then
+	configure_common 
+	prepare_toolchain
+fi
 
 prepare_rootfs
 

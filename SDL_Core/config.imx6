@@ -1,5 +1,10 @@
 #!/bin/bash
 
+PREFIX=arm-fsl-linux-gnueabi
+TOOLCHAIN_ARCHIVE="fsl-linaro-toolchain.tar.gz"
+TOOLCHAIN_ROOT="/opt/toolchain/fsl-linaro-toolchain"
+TOOLCHAIN_PATH="$TOOLCHAIN_ROOT/bin/"
+
 function prepare_toolchain(){
 	HOST_ARCH=`uname -m`
 	if [ "$HOST_ARCH" == "x86_64" ]
@@ -8,10 +13,6 @@ function prepare_toolchain(){
 	else
 		sudo apt-get install libz1g-dev
 	fi
-	PREFIX=arm-fsl-linux-gnueabi
-	TOOLCHAIN_ARCHIVE="fsl-linaro-toolchain.tar.gz"
-	TOOLCHAIN_ROOT="/opt/toolchain/fsl-linaro-toolchain"
-	TOOLCHAIN_PATH="$TOOLCHAIN_ROOT/bin/"
 
 	if [ ! -d "$TOOLCHAIN_ROOT" ]
 	then
