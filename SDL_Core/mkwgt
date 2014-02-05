@@ -1,0 +1,9 @@
+#!/bin/bash
+WGT_NAME=sdl.wgt
+HMI_DIR=src/components/HMI
+
+rm -f $WGT_NAME
+THIS_DIR=`pwd`
+cd $HMI_DIR
+zip $THIS_DIR/$WGT_NAME * -r
+cd -
