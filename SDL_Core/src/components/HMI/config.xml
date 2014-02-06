@@ -5,7 +5,7 @@
 		height		= "800"
 		width		= "600"
 		viewmodes	= "floating fullscreen">
-	<name>MovieChart</name>
+	<name>SmartDeviceLink</name>
 	<description>
 		<![CDATA[MovieChart]]>
 	</description>
