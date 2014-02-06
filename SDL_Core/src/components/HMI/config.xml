@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns		= "http://www.w3.org/ns/widgets"
+		id			= "http://www.obigo.com/appconnect/smartdevicelink"
+		version		= "1.0."
+		height		= "800"
+		width		= "600"
+		viewmodes	= "floating fullscreen">
+	<name>MovieChart</name>
+	<description>
+		<![CDATA[MovieChart]]>
+	</description>
+	<icon src="icon.png"/>
+	<content src="index.html" type="application/html"/>
+    <author>Obigo</author>
+    <license>Obigo</license>
+    <access origin="*" />
+</widget>
