@@ -45,7 +45,9 @@ cd build
 
 cmake ..
 
-make
+make -j4
+
+cd ..
 
 If you see the chromium browser and a warning message, it works.
 
@@ -70,7 +72,7 @@ Logs are diffused to 3 ways - stdout, SmartDeviceLinkCore.log, and SmartDeivceLi
 How to test via WIFI
 ======================
 ### Starting the head unit app.
-cd SDL_Core/src/appMain
+cd SDL_Core/build/src/appMain
 
 ./smartDeviceLinkCore
 
