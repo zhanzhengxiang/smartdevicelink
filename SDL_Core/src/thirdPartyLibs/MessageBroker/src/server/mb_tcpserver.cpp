@@ -48,7 +48,7 @@ namespace NsMessageBroker
       const char* ptrBuffer = rep.c_str();
       do
       {
-         int retVal = send(fd, ptrBuffer, bytesToSend, 0);
+         int retVal = send(fd, ptrBuffer, bytesToSend, MSG_NOSIGNAL);
          if(retVal == -1)
          {
             return -1;
