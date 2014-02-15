@@ -1,0 +1,107 @@
+#!/bin/bash
+
+PREFIX=arm-linux-gnueabihf
+
+function prepare_toolchain(){
+	sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
+}
+
+function prepare_rootfs(){
+	ROOTFS_DIR=armhf_sysroot
+	ROOTFS_ARCHIVE="obigo_yocto_dora_sysroot.tar.bz2 extra_libs.tar.bz2 gtk+.tar.bz2"
+
+	cd $EXTERNAL_DIR
+	for TARBALL in $ROOTFS_ARCHIVE
+	do
+		if [ ! -f "$TARBALL" ]
+		then
+			echo smbget --workgroup=AC --username=isodev --password=start\$55  smb://krsefs01/ISODev/yocto\ cross\ compile\ \(HF\)/$TARBALL || exit 1
+			smbget --workgroup=AC --username=isodev --password=start\$55  smb://krsefs01/ISODev/yocto\ cross\ compile\ \(HF\)/$TARBALL || exit 1
+		fi
+	done
+	cd -
+	pushd $PWD
+	if [ ! -d "$ROOTFS_DIR" ]
+	then
+		mkdir -p $ROOTFS_DIR/sysroot
+		cd $ROOTFS_DIR
+		for TARBALL in $ROOTFS_ARCHIVE
+		do
+			if [ "$TARBALL" != "obigo_yocto_dora_sysroot.tar.bz2" ]
+			then
+				cd sysroot
+				tar -jxvf ../../$EXTERNAL_DIR/$TARBALL
+				cd ..
+			else
+				tar -jxvf ../$EXTERNAL_DIR/$TARBALL
+			fi
+		done
+	fi
+	popd
+}
+
+function configure_arguments_inline(){
+	CMAKE_CONFIGURE="-DCMAKE_SYSTEM_NAME=Linux "
+	if [ ! -n "$TOOLCHAIN_PATH" ]
+	then
+		CMAKE_CONFIGURE+="-DCMAKE_C_COMPILER=`which $PREFIX-gcc` "
+		CMAKE_CONFIGURE+="-DCMAKE_CXX_COMPILER=`which $PREFIX-g++` "
+		CMAKE_CONFIGURE+="-DCMAKE_AR=`which $PREFIX-ar` "
+#		CMAKE_CONFIGURE+="-DCMAKE_C_LINK_EXECUTABLE=`which $PREFIX-ld` "
+#		CMAKE_CONFIGURE+="-DCMAKE_CXX_LINK_EXECUTABLE=`which $PREFIX-g++` "
+	else
+		CMAKE_CONFIGURE+="-DCMAKE_C_COMPILER=$TOOLCHAIN_PATH$PREFIX-gcc "
+		CMAKE_CONFIGURE+="-DCMAKE_CXX_COMPILER=$TOOLCHAIN_PATH$PREFIX-g++ "
+		CMAKE_CONFIGURE+="-DCMAKE_AR=$TOOLCHAIN_PATH$PREFIX-ar "
+#		CMAKE_CONFIGURE+="-DCMAKE_C_LINK_EXECUTABLE=$TOOLCHAIN_PATH$PREFIX-ld "
+#		CMAKE_CONFIGURE+="-DCMAKE_CXX_LINK_EXECUTABLE=$TOOLCHAIN_PATH$PREFIX-g++ "
+	fi
+#	CMAKE_CONFIGURE+="-DCMAKE_FIND_ROOT_PATH=$PWD/$ROOTFS_DIR/sysroot "
+#	CMAKE_CONFIGURE+="-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER "
+#	CMAKE_CONFIGURE+="-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY "
+#	CMAKE_CONFIGURE+="-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY "
+	CMAKE_CONFIGURE+="-DCMAKE_SYSTEM_PREFIX_PATH=$PWD/$ROOTFS_DIR/sysroot "
+	CMAKE_CONFIGURE+="-DCMAKE_SYSTEM_INCLUDE_PATH=$PWD/$ROOTFS_DIR/sysroot/usr/include "
+	CMAKE_CONFIGURE+="-DCMAKE_SYSTEM_LIBRARY_PATH=$PWD/$ROOTFS_DIR/sysroot/usr/lib "
+	CMAKE_CONFIGURE+="-DOPENSSL_INCLUDE_DIR=$PWD/$ROOTFS_DIR/sysroot/usr/include "
+	CMAKE_CONFIGURE+="-DOPENSSL_LIBRARIES=$PWD/$ROOTFS_DIR/sysroot/usr/lib"
+}
+
+function configure_arguments(){
+	if [ ! -n "$TOOLCHAIN_PATH" ]
+	then
+		CMAKE_C_COMPILER=`which $PREFIX-gcc` 
+		CMAKE_CXX_COMPILER=`which $PREFIX-g++` 
+		CMAKE_AR=`which $PREFIX-ar` 
+		CMAKE_C_LINK_EXECUTABLE=`which $PREFIX-gcc` 
+		CMAKE_CXX_LINK_EXECUTABLE=`which $PREFIX-g++` 
+	else
+		CMAKE_C_COMPILER=$TOOLCHAIN_PATH$PREFIX-gcc 
+		CMAKE_CXX_COMPILER=$TOOLCHAIN_PATH$PREFIX-g++ 
+		CMAKE_AR=$TOOLCHAIN_PATH$PREFIX-ar 
+		CMAKE_C_LINK_EXECUTABLE=$TOOLCHAIN_PATH$PREFIX-gcc
+		CMAKE_CXX_LINK_EXECUTABLE=$TOOLCHAIN_PATH$PREFIX-g++ 
+	fi
+#	CMAKE_FIND_ROOT_PATH=$PWD/$ROOTFS_DIR/sysroot 
+#	CMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER 
+#	CMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY 
+#	CMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY 
+	CMAKE_SYSTEM_PREFIX_PATH=$PWD/$ROOTFS_DIR/sysroot 
+	CMAKE_SYSTEM_INCLUDE_PATH=$PWD/$ROOTFS_DIR/sysroot/usr/include 
+	CMAKE_SYSTEM_LIBRARY_PATH=$PWD/$ROOTFS_DIR/sysroot/usr/lib 
+	CMAKE_OPENSSL_SSL_LIBRARY=$PWD/$ROOTFS_DIR/sysroot/usr/lib/libssl.so
+	sed "s#@arch@#armv7-a#g;
+		s#@c_compiler@#$CMAKE_C_COMPILER#g;
+		s#@cxx_compiler@#$CMAKE_CXX_COMPILER#g;
+		s#@ar@#$CMAKE_AR#g;
+		s#@system_prefix@#$CMAKE_SYSTEM_PREFIX_PATH#g;
+		s#@system_include@#$CMAKE_SYSTEM_INCLUDE_PATH#g;
+		s#@system_library@#$CMAKE_SYSTEM_LIBRARY_PATH#g;
+		s#@openssl_ssl_library@#$CMAKE_OPENSSL_SSL_LIBRARY#g;
+	" < toolchain.cmake.in > toolchain.cmake
+	CMAKE_CONFIGURE="-DCMAKE_TOOLCHAIN_FILE=../toolchain.cmake "
+	CMAKE_CONFIGURE=" -DOPENSSL_ROOT_DIR=$PWD/$ROOTFS_DIR/usr/lib/ssl"
+}
+export PKG_CONFIG_PATH=$PWD/$ROOTFS_DIR/sysroot/usr/lib/pkgconfig
+export PKG_CONFIG_LIBDIR=$PWD/$ROOTFS_DIR/sysroot/usr/lib/pkgconfig
+
