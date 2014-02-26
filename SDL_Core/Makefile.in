@@ -1,0 +1,9 @@
+CORES=$(shell cat /proc/cpuinfo | grep processor | wc -l)
+
+all clean:
+	@make_env@ $(MAKE) -C build $@ -j$(CORES)
+
+distclean:
+	rm -rf build
+	find . -name environment -exec rm -f {} \;
+	rm toolchain.cmake

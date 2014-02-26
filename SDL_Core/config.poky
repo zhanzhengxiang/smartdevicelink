@@ -1,0 +1,56 @@
+#!/bin/bash
+
+function prepare_toolchain(){
+	HOST_ARCH=`uname -m`
+	TOOLCHAIN_URL=http://downloads.yoctoproject.org/releases/yocto/yocto-1.5.1/toolchain
+	TOOLCHAIN_ARCHIVE=poky-eglibc-$HOST_ARCH-core-image-sato-armv7a-vfp-neon-toolchain-1.5.1.sh
+	if [ ! -d "/opt/poky" ]
+	then
+		curl $TOOLCHAIN_URL/$HOST_ARCH/$TOOLCHAIN_ARCHIVE
+		./$TOOLCHAIN_ARCHIVE
+	fi
+}
+
+function prepare_rootfs(){
+	ROOTFS_DIR=poky_sysroot
+	ROOTFS_ARCHIVE=poky_sysroot.tar.gz
+
+	if [ ! -d "$ROOTFS_DIR" ]
+	then
+		mkdir -p $ROOTFS_DIR/sysroot
+		tar -zxvf $EXTERNAL_DIR/$ROOTFS_ARCHIVE
+	fi
+	mv $ROOTFS_DIR/sysroot/usr/include/json $ROOTFS_DIR/sysroot/usr/include/json-1
+}
+
+function configure_arguments(){
+	sed "s#@sysroot@#$PWD/$ROOTFS_DIR/sysroot#g" < poky/environment.in > poky/environment
+	MAKE_ENV=". ./poky/environment; "
+	. poky/environment
+	CMAKE_C_COMPILER=${CROSS_COMPILE}gcc
+	CMAKE_CXX_COMPILER=${CROSS_COMPILE}g++
+	CMAKE_AR=${CROSS_COMPILE}ar
+	CMAKE_C_LINK_EXECUTABLE=${CROSS_COMPILE}ld
+	CMAKE_CXX_LINK_EXECUTABLE=${CROSS_COMPILE}ld
+#	CMAKE_FIND_ROOT_PATH=$PWD/$ROOTFS_DIR/sysroot 
+#	CMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER 
+#	CMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY 
+#	CMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY 
+	CMAKE_SYSTEM_PREFIX_PATH=$PWD/$ROOTFS_DIR/sysroot 
+	CMAKE_SYSTEM_INCLUDE_PATH=$PWD/$ROOTFS_DIR/sysroot/usr/include 
+	CMAKE_SYSTEM_LIBRARY_PATH=$PWD/$ROOTFS_DIR/sysroot/usr/lib 
+	CMAKE_OPENSSL_SSL_LIBRARY=$PWD/$ROOTFS_DIR/sysroot/usr/lib/libssl.so
+	sed "s#@arch@#armv7-a#g;
+		s#@c_compiler@#$CMAKE_C_COMPILER#g;
+		s#@c_linker@#$CMAKE_C_LINK_EXECUTABLE#g;
+		s#@cxx_compiler@#$CMAKE_CXX_COMPILER#g;
+		s#@cxx_linker@#$CMAKE_CXX_LINK_EXECUTABLE#g;
+		s#@ar@#$CMAKE_AR#g;
+		s#@system_prefix@#$CMAKE_SYSTEM_PREFIX_PATH#g;
+		s#@system_include@#$CMAKE_SYSTEM_INCLUDE_PATH#g;
+		s#@system_library@#$CMAKE_SYSTEM_LIBRARY_PATH#g;
+		s#@openssl_ssl_library@#$CMAKE_OPENSSL_SSL_LIBRARY#g;
+		s#@usr_libs@#$CMAKE_USR_LIBS#g;
+	" < toolchain.cmake.in > toolchain.cmake
+	CMAKE_CONFIGURE="-DCMAKE_TOOLCHAIN_FILE=../toolchain.cmake"
+}

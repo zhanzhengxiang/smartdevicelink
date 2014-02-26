@@ -49,9 +49,9 @@ function prepare_rootfs(){
 #	rm $ROOTFS_DIR/sysroot/usr/lib/libc.a
 	mv $ROOTFS_DIR/sysroot/usr/lib/libpthread.so libpthread.so
 	sed "s#/usr/lib/##g;s#/lib/##g" < libpthread.so > $ROOTFS_DIR/sysroot/usr/lib/libpthread.so
-	rm -f $ROOTFS_DIR/sysroot/usr/lib/librt.so
-	rm -f $ROOTFS_DIR/sysroot/usr/lib/librt.a
-	rm -rf $ROOTFS_DIR/sysroot/usr/include/json
+#	rm -f $ROOTFS_DIR/sysroot/usr/lib/librt.so
+#	rm -f $ROOTFS_DIR/sysroot/usr/lib/librt.a
+	mv $ROOTFS_DIR/sysroot/usr/include/json $ROOTFS_DIR/sysroot/usr/include/json-1
 }
 
 function configure_arguments_inline(){
@@ -82,20 +82,29 @@ function configure_arguments_inline(){
 }
 
 function configure_arguments(){
+	MAKE_ENV=". ./imx6/environment; "
 	if [ ! -n "$TOOLCHAIN_PATH" ]
 	then
 		CMAKE_C_COMPILER=`which $PREFIX-gcc` 
 		CMAKE_CXX_COMPILER=`which $PREFIX-g++` 
 		CMAKE_AR=`which $PREFIX-ar` 
+		CMAKE_LD=`which $PREFIX-ld` 
 		CMAKE_C_LINK_EXECUTABLE=`which $PREFIX-gcc` 
 		CMAKE_CXX_LINK_EXECUTABLE=`which $PREFIX-g++` 
 	else
 		CMAKE_C_COMPILER=$TOOLCHAIN_PATH$PREFIX-gcc 
 		CMAKE_CXX_COMPILER=$TOOLCHAIN_PATH$PREFIX-g++ 
 		CMAKE_AR=$TOOLCHAIN_PATH$PREFIX-ar 
+		CMAKE_LD=$TOOLCHAIN_PATH$PREFIX-ld
 		CMAKE_C_LINK_EXECUTABLE=$TOOLCHAIN_PATH$PREFIX-gcc
 		CMAKE_CXX_LINK_EXECUTABLE=$TOOLCHAIN_PATH$PREFIX-g++ 
 	fi
+	sed "s#@cc@#$CMAKE_C_COMPILER#g;
+		s#@cxx@#$CMAKE_CXX_COMPILER#g;
+		s#@ld@#$CMAKE_LD#g;
+		s#@sysroot@#$PWD/$ROOTFS_DIR/sysroot#g;
+		" < imx6/environment.in > imx6/environment
+	. imx6/environment
 #	CMAKE_FIND_ROOT_PATH=$PWD/$ROOTFS_DIR/sysroot 
 #	CMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER 
 #	CMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY 
@@ -112,9 +121,7 @@ function configure_arguments(){
 		s#@system_include@#$CMAKE_SYSTEM_INCLUDE_PATH#g;
 		s#@system_library@#$CMAKE_SYSTEM_LIBRARY_PATH#g;
 		s#@openssl_ssl_library@#$CMAKE_OPENSSL_SSL_LIBRARY#g;
+		s#@usr_libs@#$CMAKE_USR_LIBS#g;
 	" < toolchain.cmake.in > toolchain.cmake
 	CMAKE_CONFIGURE="-DCMAKE_TOOLCHAIN_FILE=../toolchain.cmake"
 }
-export PKG_CONFIG_PATH=$PWD/$ROOTFS_DIR/sysroot/usr/lib/pkgconfig
-export PKG_CONFIG_LIBDIR=$PWD/$ROOTFS_DIR/sysroot/usr/lib/pkgconfig
-

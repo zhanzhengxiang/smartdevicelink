@@ -24,14 +24,15 @@ case $TARGET in
 		echo "Usage: ./configure {target} {option}"
 		echo "Targets"
 		echo "    imx6 : Freescale iMX.6"
-		echo "    itj6 : TI j6"
+		echo "    tij6 : TI j6"
+		echo "    poky : iMX6 poky build"
 		echo "    host : This box"
 		echo "    help : Help message(This screen)"
 		echo "Options"
 		echo "    --env : sets up environment for building"
 		exit 1
 		;;
-	host|imx6|tij6)
+	host|imx6|tij6|poky)
 		. ./config.$TARGET
 		;;
 	*)
@@ -50,6 +51,7 @@ prepare_rootfs
 
 configure_arguments
 
+sed "s#@make_env@#$MAKE_ENV#g" < Makefile.in > Makefile
 rm -rf build
 mkdir build
 cd build

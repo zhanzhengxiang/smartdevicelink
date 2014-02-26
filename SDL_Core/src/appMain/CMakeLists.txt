@@ -1,5 +1,4 @@
 set(LIBRARIES
-  ${USR_LIBS}
   AppMgr
   JSONHandler
   ProtocolHandler

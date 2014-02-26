@@ -1,0 +1,6 @@
+export PKG_CONFIG_PATH=@sysroot@/usr/lib/pkgconfig
+export PKG_CONFIG_LIBDIR=@sysroot@/usr/lib/pkgconfig
+export CC="@cc@ -march=armv7-a --sysroot=@sysroot@"
+export CXX="@cxx@ -march=armv7-a --sysroot=@sysroot@"
+export LD="@ld@ --sysroot=@sysroot@"
+export LDFLAGS="-Wl,-O1 -Wl,--hash-style=gnu -Wl,--as-needed -L@sysroot@/lib -L@sysroot@/usr/lib"
