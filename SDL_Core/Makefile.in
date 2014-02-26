@@ -6,4 +6,4 @@ all clean:
 distclean:
 	rm -rf build
 	find . -name environment -exec rm -f {} \;
-	rm toolchain.cmake
+	rm -f toolchain.cmake Makefile
