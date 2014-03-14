@@ -15,10 +15,17 @@ function prepare_rootfs(){
 	ROOTFS_DIR=poky_sysroot
 	ROOTFS_ARCHIVE=poky_sysroot.tar.gz
 
+	cd $EXTERNAL_DIR
+	if [ ! -f "$ROOTFS_ARCHIVE" ]
+	then
+		wget https://www.dropbox.com/s/wl25zd16cnykadp/sysroot.tar.gz
+		mv sysroot.tar.gz $ROOTFS_ARCHIVE
+	fi
+	cd -
 	if [ ! -d "$ROOTFS_DIR" ]
 	then
 		mkdir -p $ROOTFS_DIR/sysroot
-		tar -zxvf $EXTERNAL_DIR/$ROOTFS_ARCHIVE
+		tar -zxvf $EXTERNAL_DIR/$ROOTFS_ARCHIVE -C $ROOTFS_DIR
 	fi
 	mv $ROOTFS_DIR/sysroot/usr/include/json $ROOTFS_DIR/sysroot/usr/include/json-1
 }

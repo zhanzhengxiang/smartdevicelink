@@ -4,7 +4,6 @@ EXTERNAL_DIR=external
 
 function configure_common(){
 	sudo apt-get install graphviz doxygen
-	mkdir -p $EXTERNAL_DIR
 }
 
 if [ ! -n "$1" ]
@@ -18,6 +17,7 @@ fi
 
 OPT=$2
 
+mkdir -p $EXTERNAL_DIR
 case $TARGET in
 	help)
 		echo "configure tool v1.0 by Newton Kim"
