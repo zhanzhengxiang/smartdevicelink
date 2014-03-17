@@ -51,6 +51,25 @@ cd ..
 
 If you see the chromium browser and a warning message, it works.
 
+
+###Cross-compiling via Poky toolchain
+Ubuntu linux is recommended
+
+####Download poky toolchain from following site
+64bit linux
+
+http://downloads.yoctoproject.org/releases/yocto/yocto-1.5.1/toolchain/x86_64/poky-eglibc-x86_64-core-image-sato-armv7a-vfp-neon-toolchain-1.5.1.sh
+
+####32bit linux
+
+http://downloads.yoctoproject.org/releases/yocto/yocto-1.5.1/toolchain/i686/poky-eglibc-i686-core-image-sato-armv7a-vfp-neon-toolchain-1.5.1.sh
+
+./configure poky
+
+(If it is the first time to run configure, ./confgure imx6 --env)
+
+make -C build -j4
+
 ###Cross-compiling for iMX6
 Ubuntu linux is recommended
 
