@@ -19,140 +19,187 @@
 #include "libMBDebugHelper.h"
 #include "md5.h"
 
-#include <openssl/sha.h>
-
-
 namespace NsMessageBroker 
 {
-   int CWebSocketHandler::parseWebSocketData(char* Buffer, unsigned int& b_size)
-   {
-      // Please see RFC6455 standard protocol specification:
-      //http://tools.ietf.org/html/rfc6455
-      // Chapter 5.2
-      DBG_MSG(("CWebSocketHandler::parseWebSocketData()b_size = %d\n", b_size));
-      char* recBuffer = Buffer;
-      unsigned int parsedBufferPosition = 0;
-      unsigned int nextBufferPosition = 0;
-      while (nextBufferPosition < b_size)
-      {
-         DBG_MSG(("CWebSocketHandler::parseWebSocketData()recBuffer[0] = %s\n", std::string(recBuffer, 1).c_str()));
-         bool fin = (recBuffer[0] & 0x80) == 0x80;
 
-         bool rsv1 = (recBuffer[0] & 0x40) == 0x40;
-         bool rsv2 = (recBuffer[0] & 0x20) == 0x20;
-         bool rsv3 = (recBuffer[0] & 0x10) == 0x10;
+   unsigned int CWebSocketHandler::parseWebSocketDataLength(
+       const char* Buffer, unsigned int& b_size) {
 
-         unsigned char opCode = ((recBuffer[0] & 0x08) | (recBuffer[0] & 0x04) | (recBuffer[0] & 0x02) | (recBuffer[0] & 0x01));
+     unsigned char payload =
+         (unsigned char)((Buffer[1] & 0x40) | (Buffer[1] & 0x20) |
+         (Buffer[1] & 0x10) | (Buffer[1] & 0x08) | (Buffer[1] & 0x04) |
+         (Buffer[1] & 0x02) | (Buffer[1] & 0x01));
+      unsigned long length = 0;
+      unsigned char position = 2; // current buffer position
 
-         bool mask = (recBuffer[1] & 0x80) == 0x80;
-
-         unsigned char payload = 
-            (unsigned char)((recBuffer[1] & 0x40) | (recBuffer[1] & 0x20) | (recBuffer[1] & 0x10) |
-            (recBuffer[1] & 0x08) | (recBuffer[1] & 0x04) | (recBuffer[1] & 0x02) | (recBuffer[1] & 0x01));
-         unsigned long length = 0;
-         DBG_MSG(("CWebSocketHandler::parseWebSocketData()fin:%d; rsv1:%d; rsv2:%d; rsv3:%d; opCode:%d; mask:%d; payload:%d\n", fin, rsv1, rsv2, rsv3, opCode, mask, payload));
-
-         unsigned char position = 2; // current buffer position
-
-         switch(payload) {
-            case 126:
-               {
-                  length = (unsigned char)recBuffer[position++];
-                  length <<=8;
-                  length |= (unsigned char)recBuffer[position++];
-                  break;
-               }
-            case 127:
-               {
-                  length = (unsigned char)recBuffer[position++];
-                  length <<=8;
-                  length |= (unsigned char)recBuffer[position++];
-                  length <<=8;
-                  length |= (unsigned char)recBuffer[position++];
-                  length <<=8;
-                  length |= (unsigned char)recBuffer[position++];
-                  length <<=8;
-                  length |= (unsigned char)recBuffer[position++];
-                  length <<=8;
-                  length |= (unsigned char)recBuffer[position++];
-                  length <<=8;
-                  length |= (unsigned char)recBuffer[position++];
-                  length <<=8;
-                  length |= (unsigned char)recBuffer[position++];
-                  break;
-               }
-            default:
-               {
-                  length = payload;
-                  break;
-               }
-         }
-
-         if (mask)
-         {
-            unsigned char maskKeys[4];
-            maskKeys[0] = recBuffer[position++];
-            maskKeys[1] = recBuffer[position++];
-            maskKeys[2] = recBuffer[position++];
-            maskKeys[3] = recBuffer[position++];
-            DBG_MSG(("CWebSocketHandler::parseWebSocketData()maskKeys[0]:0x%02X; maskKeys[1]:0x%02X; maskKeys[2]:0x%02X; maskKeys[3]:0x%02X\n"
-                     , maskKeys[0], maskKeys[1], maskKeys[2], maskKeys[3]));
-            for( unsigned long i = position; i < position+length; i++)
+      switch(payload) {
+         case 126:
             {
-               recBuffer[i] = recBuffer[i] ^ maskKeys[(i-position)%4];
+               length = (unsigned char)Buffer[position++];
+               length <<=8;
+               length |= (unsigned char)Buffer[position++];
+               break;
             }
-         }
-         DBG_MSG(("CWebSocketHandler::parseWebSocketData()length:%d; position:%d\n", (int)length, position));
-         for( unsigned long i = position; i < position+length; i++)
-         {
-            Buffer[parsedBufferPosition++] = recBuffer[i];
-         }
-         nextBufferPosition += position+length;
-         recBuffer += position+length;
-         DBG_MSG(("CWebSocketHandler::parseWebSocketData()nextBufferPosition = %d; parsedBufferPosition = %d\n", nextBufferPosition, parsedBufferPosition));
-         std::string message = std::string(Buffer, b_size);
+         case 127:
+            {
+               length = (unsigned char)Buffer[position++];
+               length <<=8;
+               length |= (unsigned char)Buffer[position++];
+               length <<=8;
+               length |= (unsigned char)Buffer[position++];
+               length <<=8;
+               length |= (unsigned char)Buffer[position++];
+               length <<=8;
+               length |= (unsigned char)Buffer[position++];
+               length <<=8;
+               length |= (unsigned char)Buffer[position++];
+               length <<=8;
+               length |= (unsigned char)Buffer[position++];
+               length <<=8;
+               length |= (unsigned char)Buffer[position++];
+               break;
+            }
+         default:
+            {
+               length = payload;
+               return length;
+            }
       }
-      b_size = parsedBufferPosition;
-      return b_size;
+
+      return length;
    }
 
-   int CWebSocketHandler::prepareWebSocketDataHeader(char* Buffer, unsigned long b_size)
+   int CWebSocketHandler::parseWebSocketData(char* Buffer, unsigned int& b_size)
    {
-      unsigned long headerLength = 2;
+     // Please see RFC6455 standard protocol specification:
+     //http://tools.ietf.org/html/rfc6455
+     // Chapter 5.2
+     DBG_MSG(("CWebSocketHandler::parseWebSocketData()b_size = %d\n", b_size));
+     char* recBuffer = Buffer;
+     unsigned int parsedBufferPosition = 0;
+     unsigned char position = 0; // current buffer position
+
+     while (0 < b_size) {
+
+       bool fin = ((recBuffer[0] & 0x80) | (recBuffer[0] & 0x01)) == 0x81;
+       bool rsv1 = (recBuffer[0] & 0x40) == 0x40;
+       bool rsv2 = (recBuffer[0] & 0x20) == 0x20;
+       bool rsv3 = (recBuffer[0] & 0x10) == 0x10;
+       unsigned char opCode = ((recBuffer[0] & 0x08) | (recBuffer[0] & 0x04) |
+           (recBuffer[0] & 0x02) | (recBuffer[0] & 0x01));
+       bool mask = (recBuffer[1] & 0x80) == 0x80;
+
+       DBG_MSG(("CWebSocketHandler::fin = %d recBuffer[0] = 0x%02X\n"
+           " parsedlength = %d b_size= %d parsedBufferPosition = %d\n",
+           fin, recBuffer[0], parsedBufferPosition + position,
+           b_size, parsedBufferPosition));
+
+
+       if (false == fin) {
+          break;
+       }
+
+       unsigned char payload = (unsigned char)
+        ((recBuffer[1] & 0x40) | (recBuffer[1] & 0x20) | (recBuffer[1] & 0x10) |
+        (recBuffer[1] & 0x08) | (recBuffer[1] & 0x04) | (recBuffer[1] & 0x02) |
+        (recBuffer[1] & 0x01));
+
+       unsigned int size = b_size;
+       unsigned long length = parseWebSocketDataLength(recBuffer, size);
+       position = 2;
+
+       if (length > size) {
+          break;
+       }
+
+       switch(payload) {
+          case 126:
+             {
+                position +=2;
+                break;
+             }
+          case 127:
+             {
+                position +=8;
+                break;
+             }
+          default:
+             {
+                break;
+             }
+       }
+
+       if (mask)
+       {
+          unsigned char maskKeys[4];
+          maskKeys[0] = recBuffer[position++];
+          maskKeys[1] = recBuffer[position++];
+          maskKeys[2] = recBuffer[position++];
+          maskKeys[3] = recBuffer[position++];
+          DBG_MSG(("CWebSocketHandler::parseWebSocketData()maskKeys[0]:0x%02X;"
+                 " maskKeys[1]:0x%02X; maskKeys[2]:0x%02X; maskKeys[3]:0x%02X\n"
+                 , maskKeys[0], maskKeys[1], maskKeys[2], maskKeys[3]));
+          for( unsigned long i = position; i < position+length; i++)
+          {
+             recBuffer[i] = recBuffer[i] ^ maskKeys[(i-position)%4];
+          }
+       }
+       DBG_MSG(("CWebSocketHandler::parseWebSocketData()length:%d; size:%d;"
+                " position:%d\n", (int)length, size, position));
+
+       for( unsigned long i = position; i < size, i < position+length; i++)
+       {
+          Buffer[parsedBufferPosition++] = recBuffer[i];
+       }
+
+       recBuffer += length+position;
+       b_size -= length+position;
+
+     }
+     b_size = parsedBufferPosition;
+     return b_size;
+   }
+
+   int CWebSocketHandler::prepareWebSocketDataHeader(unsigned char* Buffer,
+                                                     unsigned long long b_size)
+   {
+      unsigned int headerLength = 2;
       unsigned char payload;
-      if (b_size >= 65536)
+
+      memset(Buffer, 0, headerLength);
+      Buffer[0] = 0x81;    // 129
+
+      if (b_size <= 125)
       {
-         headerLength += 8;
-         payload = 127;
-      } else if(b_size >= 126)
+        payload = b_size;
+        Buffer[1] = b_size;      // string length
+      } else if (b_size >= 126 && b_size <= 65535)
       {
-         headerLength += 2;
-         payload = 126;
+        headerLength += 2;
+        payload = 126;
+        Buffer[1] = 0x7E;  // 126
       } else
       {
-         payload = b_size;
+        headerLength += 8;
+        payload = 127;
+        Buffer[1] = 0x7F;  // 127
       }
-      memset(Buffer, 0, headerLength);
-      Buffer[0] = (char)0x80 | 0x01;
-      Buffer[1] = (char)(Buffer[1] | (payload & 0x40) | (payload & 0x20) |
-                                     (payload & 0x10) | (payload & 0x08) |
-                                     (payload & 0x04) | (payload & 0x02) |
-                                     (payload & 0x01));
+
 
       if (payload == 126)
       {
-         Buffer[2] = (char)(b_size>>8);
-         Buffer[3] = (char)b_size;
+         Buffer[2] = (b_size>>8);
+         Buffer[3] = b_size;
       } else if (payload == 127)
       {
-         Buffer[9] = (char)(b_size);
-         Buffer[8] = (char)(b_size>=8);
-         Buffer[7] = (char)(b_size>=8);
-         Buffer[6] = (char)(b_size>=8);
-         Buffer[5] = (char)(b_size>=8);
-         Buffer[4] = (char)(b_size>=8);
-         Buffer[3] = (char)(b_size>=8);
-         Buffer[2] = (char)(b_size>=8);
+         Buffer[9] = (b_size       & 0xFF);
+         Buffer[8] = ((b_size>>8)  & 0xFF);
+         Buffer[7] = ((b_size>>16) & 0xFF);
+         Buffer[6] = ((b_size>>24) & 0xFF);
+         Buffer[5] = ((b_size>>32) & 0xFF);
+         Buffer[4] = ((b_size>>40) & 0xFF);
+         Buffer[3] = ((b_size>>48) & 0xFF);
+         Buffer[2] = ((b_size>>56) & 0xFF);
       }
       return headerLength;
 }
@@ -179,13 +226,186 @@ namespace NsMessageBroker
       key = accept_buf;
    }
 
+   void CWebSocketHandler::sha1_step(struct sha1_ctxt *ctxt)
+   {
+      unsigned int   a, b, c, d, e;
+      size_t t, s;
+      unsigned int   tmp;
+
+      struct sha1_ctxt tctxt;
+
+      memcpy(&tctxt.m.b8[0], &ctxt->m.b8[0], 64);
+      ctxt->m.b8[0] = tctxt.m.b8[3]; ctxt->m.b8[1] = tctxt.m.b8[2];
+      ctxt->m.b8[2] = tctxt.m.b8[1]; ctxt->m.b8[3] = tctxt.m.b8[0];
+      ctxt->m.b8[4] = tctxt.m.b8[7]; ctxt->m.b8[5] = tctxt.m.b8[6];
+      ctxt->m.b8[6] = tctxt.m.b8[5]; ctxt->m.b8[7] = tctxt.m.b8[4];
+      ctxt->m.b8[8] = tctxt.m.b8[11]; ctxt->m.b8[9] = tctxt.m.b8[10];
+      ctxt->m.b8[10] = tctxt.m.b8[9]; ctxt->m.b8[11] = tctxt.m.b8[8];
+      ctxt->m.b8[12] = tctxt.m.b8[15]; ctxt->m.b8[13] = tctxt.m.b8[14];
+      ctxt->m.b8[14] = tctxt.m.b8[13]; ctxt->m.b8[15] = tctxt.m.b8[12];
+      ctxt->m.b8[16] = tctxt.m.b8[19]; ctxt->m.b8[17] = tctxt.m.b8[18];
+      ctxt->m.b8[18] = tctxt.m.b8[17]; ctxt->m.b8[19] = tctxt.m.b8[16];
+      ctxt->m.b8[20] = tctxt.m.b8[23]; ctxt->m.b8[21] = tctxt.m.b8[22];
+      ctxt->m.b8[22] = tctxt.m.b8[21]; ctxt->m.b8[23] = tctxt.m.b8[20];
+      ctxt->m.b8[24] = tctxt.m.b8[27]; ctxt->m.b8[25] = tctxt.m.b8[26];
+      ctxt->m.b8[26] = tctxt.m.b8[25]; ctxt->m.b8[27] = tctxt.m.b8[24];
+      ctxt->m.b8[28] = tctxt.m.b8[31]; ctxt->m.b8[29] = tctxt.m.b8[30];
+      ctxt->m.b8[30] = tctxt.m.b8[29]; ctxt->m.b8[31] = tctxt.m.b8[28];
+      ctxt->m.b8[32] = tctxt.m.b8[35]; ctxt->m.b8[33] = tctxt.m.b8[34];
+      ctxt->m.b8[34] = tctxt.m.b8[33]; ctxt->m.b8[35] = tctxt.m.b8[32];
+      ctxt->m.b8[36] = tctxt.m.b8[39]; ctxt->m.b8[37] = tctxt.m.b8[38];
+      ctxt->m.b8[38] = tctxt.m.b8[37]; ctxt->m.b8[39] = tctxt.m.b8[36];
+      ctxt->m.b8[40] = tctxt.m.b8[43]; ctxt->m.b8[41] = tctxt.m.b8[42];
+      ctxt->m.b8[42] = tctxt.m.b8[41]; ctxt->m.b8[43] = tctxt.m.b8[40];
+      ctxt->m.b8[44] = tctxt.m.b8[47]; ctxt->m.b8[45] = tctxt.m.b8[46];
+      ctxt->m.b8[46] = tctxt.m.b8[45]; ctxt->m.b8[47] = tctxt.m.b8[44];
+      ctxt->m.b8[48] = tctxt.m.b8[51]; ctxt->m.b8[49] = tctxt.m.b8[50];
+      ctxt->m.b8[50] = tctxt.m.b8[49]; ctxt->m.b8[51] = tctxt.m.b8[48];
+      ctxt->m.b8[52] = tctxt.m.b8[55]; ctxt->m.b8[53] = tctxt.m.b8[54];
+      ctxt->m.b8[54] = tctxt.m.b8[53]; ctxt->m.b8[55] = tctxt.m.b8[52];
+      ctxt->m.b8[56] = tctxt.m.b8[59]; ctxt->m.b8[57] = tctxt.m.b8[58];
+      ctxt->m.b8[58] = tctxt.m.b8[57]; ctxt->m.b8[59] = tctxt.m.b8[56];
+      ctxt->m.b8[60] = tctxt.m.b8[63]; ctxt->m.b8[61] = tctxt.m.b8[62];
+      ctxt->m.b8[62] = tctxt.m.b8[61]; ctxt->m.b8[63] = tctxt.m.b8[60];
+
+      a = H(0); b = H(1); c = H(2); d = H(3); e = H(4);
+
+      for (t = 0; t < 20; t++)
+      {
+         s = t & 0x0f;
+         if (t >= 16)
+            W(s) = S(1, W((s+13) & 0x0f) ^ W((s+8) & 0x0f) ^
+                        W((s+2) & 0x0f) ^ W(s));
+
+         tmp = S(5, a) + F0(b, c, d) + e + W(s) + K(t);
+         e = d; d = c; c = S(30, b); b = a; a = tmp;
+      }
+      for (t = 20; t < 40; t++)
+      {
+         s = t & 0x0f;
+         W(s) = S(1, W((s+13) & 0x0f) ^ W((s+8) & 0x0f) ^
+                        W((s+2) & 0x0f) ^ W(s));
+         tmp = S(5, a) + F1(b, c, d) + e + W(s) + K(t);
+         e = d; d = c; c = S(30, b); b = a; a = tmp;
+      }
+      for (t = 40; t < 60; t++)
+      {
+         s = t & 0x0f;
+         W(s) = S(1, W((s+13) & 0x0f) ^ W((s+8) & 0x0f) ^
+                        W((s+2) & 0x0f) ^ W(s));
+         tmp = S(5, a) + F2(b, c, d) + e + W(s) + K(t);
+         e = d; d = c; c = S(30, b); b = a; a = tmp;
+      }
+      for (t = 60; t < 80; t++)
+      {
+         s = t & 0x0f;
+         W(s) = S(1, W((s+13) & 0x0f) ^ W((s+8) & 0x0f) ^
+                        W((s+2) & 0x0f) ^ W(s));
+         tmp = S(5, a) + F3(b, c, d) + e + W(s) + K(t);
+         e = d; d = c; c = S(30, b); b = a; a = tmp;
+      }
+
+      H(0) = H(0) + a;
+      H(1) = H(1) + b;
+      H(2) = H(2) + c;
+      H(3) = H(3) + d;
+      H(4) = H(4) + e;
+
+      memset(&ctxt->m.b8[0], 0, 64);
+   }
+
+   void CWebSocketHandler::sha1_init(struct sha1_ctxt *ctxt)
+   {
+      memset(ctxt, 0, sizeof(struct sha1_ctxt));
+      H(0) = 0x67452301;
+      H(1) = 0xefcdab89;
+      H(2) = 0x98badcfe;
+      H(3) = 0x10325476;
+      H(4) = 0xc3d2e1f0;
+   }
+
+   void CWebSocketHandler::sha1_pad(struct sha1_ctxt *ctxt)
+   {
+      size_t padlen;      /*pad length in bytes*/
+      size_t padstart;
+
+      PUTPAD(0x80);
+
+      padstart = COUNT % 64;
+      padlen = 64 - padstart;
+      if (padlen < 8)
+      {
+         memset(&ctxt->m.b8[padstart], 0, padlen);
+         COUNT += padlen;
+         COUNT %= 64;
+         sha1_step(ctxt);
+         padstart = COUNT % 64;   /* should be 0 */
+         padlen = 64 - padstart;   /* should be 64 */
+      }
+      memset(&ctxt->m.b8[padstart], 0, padlen - 8);
+      COUNT += (padlen - 8);
+      COUNT %= 64;
+
+      PUTPAD(ctxt->c.b8[7]); PUTPAD(ctxt->c.b8[6]);
+      PUTPAD(ctxt->c.b8[5]); PUTPAD(ctxt->c.b8[4]);
+      PUTPAD(ctxt->c.b8[3]); PUTPAD(ctxt->c.b8[2]);
+      PUTPAD(ctxt->c.b8[1]); PUTPAD(ctxt->c.b8[0]);
+   }
+
+   void CWebSocketHandler::sha1_loop(struct sha1_ctxt *ctxt, const unsigned char *input, size_t len)
+   {
+      size_t gaplen;
+      size_t gapstart;
+      size_t off;
+      size_t copysiz;
+
+      off = 0;
+
+      while (off < len)
+      {
+         gapstart = COUNT % 64;
+         gaplen = 64 - gapstart;
+
+         copysiz = (gaplen < len - off) ? gaplen : len - off;
+         memcpy(&ctxt->m.b8[gapstart], &input[off], copysiz);
+         COUNT += copysiz;
+         COUNT %= 64;
+         ctxt->c.b64[0] += copysiz * 8;
+         if (COUNT % 64 == 0)
+            sha1_step(ctxt);
+         off += copysiz;
+      }
+   }
+
+   void CWebSocketHandler::sha1_result(struct sha1_ctxt *ctxt, unsigned char* digest0)
+   {
+      unsigned char *digest;
+
+      digest = (unsigned char *)digest0;
+      sha1_pad(ctxt);
+      digest[0] = ctxt->h.b8[3]; digest[1] = ctxt->h.b8[2];
+      digest[2] = ctxt->h.b8[1]; digest[3] = ctxt->h.b8[0];
+      digest[4] = ctxt->h.b8[7]; digest[5] = ctxt->h.b8[6];
+      digest[6] = ctxt->h.b8[5]; digest[7] = ctxt->h.b8[4];
+      digest[8] = ctxt->h.b8[11]; digest[9] = ctxt->h.b8[10];
+      digest[10] = ctxt->h.b8[9]; digest[11] = ctxt->h.b8[8];
+      digest[12] = ctxt->h.b8[15]; digest[13] = ctxt->h.b8[14];
+      digest[14] = ctxt->h.b8[13]; digest[15] = ctxt->h.b8[12];
+      digest[16] = ctxt->h.b8[19]; digest[17] = ctxt->h.b8[18];
+      digest[18] = ctxt->h.b8[17]; digest[19] = ctxt->h.b8[16];
+   }
+
+   /*
+    * This should look and work like the libcrypto implementation
+    */
+
    unsigned char * CWebSocketHandler::SHA1(const unsigned char *d, size_t n, unsigned char *md)
    {
-      SHA_CTX ctx;
+      struct sha1_ctxt ctx;
 
-      SHA1_Init(&ctx);
-      SHA1_Update(&ctx, d, n);
-      SHA1_Final((unsigned char *)md, &ctx);
+      sha1_init(&ctx);
+      sha1_loop(&ctx, d, n);
+      sha1_result(&ctx, (unsigned char*)md);
 
       return md;
    }

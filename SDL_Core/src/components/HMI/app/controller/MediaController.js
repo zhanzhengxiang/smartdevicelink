@@ -2,15 +2,14 @@
  * Copyright (c) 2013, Ford Motor Company All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *  · Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
- *  · Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- *  · Neither the name of the Ford Motor Company nor the names of its
- * contributors may be used to endorse or promote products derived from this
- * software without specific prior written permission.
+ * modification, are permitted provided that the following conditions are met: ·
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer. · Redistributions in binary
+ * form must reproduce the above copyright notice, this list of conditions and
+ * the following disclaimer in the documentation and/or other materials provided
+ * with the distribution. · Neither the name of the Ford Motor Company nor the
+ * names of its contributors may be used to endorse or promote products derived
+ * from this software without specific prior written permission.
  * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -31,7 +30,7 @@
  * @filesource app/controller/MediaController.js
  * @version 1.0
  */
-SDL.MediaController = Em.Object.create( {
+SDL.MediaController = Em.Object.create({
 
     /**
      * Initial substate
@@ -41,34 +40,43 @@ SDL.MediaController = Em.Object.create( {
     /**
      * Turn on CD
      */
-    turnOnCD: function() {
+    turnOnCD: function () {
 
-        if( !SDL.States.media.player.active ){
-            SDL.States.goToStates( 'media.player' );
+        if (!SDL.States.media.player.active) {
+            SDL.States.goToStates('media.player');
         }
 
-        if( SDL.SDLAppController.model ){
-            SDL.SDLAppController.model.set( 'active', false );
+        if (SDL.SDLAppController.model) {
+            SDL.SDLAppController.model.set('active', false);
         }
-        SDL.CDModel.set( 'active', true );
+        SDL.CDModel.set('active', true);
     },
 
     /**
      * Switching on Application
      */
-    turnOnSDL: function() {
+    turnOnSDL: function () {
 
-        SDL.CDModel.set( 'active', false );
+        SDL.CDModel.set('active', false);
         /**
          * Set SDL Data active, flag for status bar
          */
-        if( SDL.SDLAppController.model ){
-            SDL.SDLAppController.model.set( 'active', true );
+        if (SDL.SDLAppController.model) {
+            SDL.SDLAppController.model.set('active', true);
         }
         /**
          * Go to SDL state
          */
-        SDL.States.goToStates( 'media.sdlmedia' );
+        if (SDL.SDLAppController.model.appType) {
+            for (var i = 0; i < SDL.SDLAppController.model.appType.length; i++) {
+                if (SDL.SDLAppController.model.appType[i] == "NAVIGATION") {
+                    SDL.States.goToStates('navigationApp.baseNavigation');
+                    return;
+                }
+            }
+        }
+
+        SDL.States.goToStates('media.sdlmedia');
 
     }
-} );
+});

@@ -1,8 +1,3 @@
-# --- logger
-# Disabling log4cplus tests
-option(LOG4CPLUS_BUILD_TESTING "Build log4cplus tests" OFF)
-add_subdirectory(./logger/log4cplus-1.1.0)
-
 # --- jsoncpp
 add_subdirectory(./jsoncpp)
 
@@ -11,3 +6,9 @@ add_subdirectory(./MessageBroker)
 
 # --- encryption
 add_subdirectory(./encryption)
+
+if (BUILD_USB_SUPPORT)
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+add_subdirectory(./libusbx-1.0.16)
+endif()
+endif()

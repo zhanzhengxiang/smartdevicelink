@@ -2,15 +2,14 @@
  * Copyright (c) 2013, Ford Motor Company All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *  · Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
- *  · Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- *  · Neither the name of the Ford Motor Company nor the names of its
- * contributors may be used to endorse or promote products derived from this
- * software without specific prior written permission.
+ * modification, are permitted provided that the following conditions are met: ·
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer. · Redistributions in binary
+ * form must reproduce the above copyright notice, this list of conditions and
+ * the following disclaimer in the documentation and/or other materials provided
+ * with the distribution. · Neither the name of the Ford Motor Company nor the
+ * names of its contributors may be used to endorse or promote products derived
+ * from this software without specific prior written permission.
  * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -37,23 +36,33 @@
 FFW.VehicleInfo = FFW.RPCObserver.create( {
 
     /**
+     * If true then VehicleInfo is present and ready to communicate with SDL.
+     * 
+     * @type {Boolean}
+     */
+    isReady: true,
+
+    /**
      * access to basic RPC functionality
      */
     client: FFW.RPCClient.create( {
         componentName: "VehicleInfo"
-    } ),
+    }),
 
     /**
      * connect to RPC bus
      */
     connect: function() {
-        this.client.connect( this, 600 );
+
+        this.client.connect(this, 700); // Magic number is unique identifier for
+        // component
     },
 
     /**
      * disconnect from RPC bus
      */
     disconnect: function() {
+
         this.client.disconnect();
     },
 
@@ -62,7 +71,8 @@ FFW.VehicleInfo = FFW.RPCObserver.create( {
      * time
      */
     onRPCRegistered: function() {
-        Em.Logger.log( "FFW.VehicleInfo.onRPCRegistered" );
+
+        Em.Logger.log("FFW.VehicleInfo.onRPCRegistered");
         this._super();
     },
 
@@ -70,7 +80,8 @@ FFW.VehicleInfo = FFW.RPCObserver.create( {
      * Client is unregistered - no more requests
      */
     onRPCUnregistered: function() {
-        Em.Logger.log( "FFW.VehicleInfo.onRPCUnregistered" );
+
+        Em.Logger.log("FFW.VehicleInfo.onRPCUnregistered");
         this._super();
     },
 
@@ -87,24 +98,27 @@ FFW.VehicleInfo = FFW.RPCObserver.create( {
      * previously store reuqestID to determine to which request repsonse belongs
      * to
      */
-    onRPCResult: function( response ) {
-        Em.Logger.log( "FFW.VehicleInfo.onRPCResult" );
+    onRPCResult: function(response) {
+
+        Em.Logger.log("FFW.VehicleInfo.onRPCResult");
         this._super();
     },
 
     /**
      * handle RPC erros here
      */
-    onRPCError: function( error ) {
-        Em.Logger.log( "FFW.VehicleInfo.onRPCError" );
+    onRPCError: function(error) {
+
+        Em.Logger.log("FFW.VehicleInfo.onRPCError");
         this._super();
     },
 
     /**
      * handle RPC notifications here
      */
-    onRPCNotification: function( notification ) {
-        Em.Logger.log( "FFW.VehicleInfo.onRPCNotification" );
+    onRPCNotification: function(notification) {
+
+        Em.Logger.log("FFW.VehicleInfo.onRPCNotification");
         this._super();
     },
 
@@ -113,51 +127,250 @@ FFW.VehicleInfo = FFW.RPCObserver.create( {
      * 
      * @type {Object} request
      */
-    onRPCRequest: function( request ) {
-        Em.Logger.log( "FFW.VehicleInfo.onRPCRequest" );
-        this._super();
+    onRPCRequest: function(request) {
 
-        if( request.method == "VehicleInfo.GetVehicleData" ){
+        Em.Logger.log("FFW.VehicleInfo.onRPCRequest");
+        if (this.validationCheck(request)) {
 
-            var vehicleData = SDL.SDLVehicleInfoModel.getVehicleData( request.params ), resultCode;
+            switch (request.method) {
+            case "VehicleInfo.GetVehicleData": {
 
-            if( vehicleData ){
-                resultCode = "SUCCESS";
-            }else{
-                resultCode = "GENERIC_ERROR";
+                SDL.SDLVehicleInfoModel.getVehicleData(request);
+
+                break;
             }
+
+            case "VehicleInfo.ReadDID": {
+
+                SDL.SDLVehicleInfoModel.vehicleInfoReadDID(request.params,
+                    request.id);
+
+                break;
+            }
+
+            case "VehicleInfo.GetDTCs": {
+
+                SDL.SDLVehicleInfoModel.vehicleInfoGetDTCs(request.params,
+                    request.id);
+
+                break;
+            }
+
+            case "VehicleInfo.DiagnosticMessage": {
+
+                Em.Logger.log("FFW." + request.method + "Response");
+
+                // send repsonse
+                var JSONMessage = {
+                    "jsonrpc": "2.0",
+                    "id": request.id,
+                    "result": {
+                        "messageDataResult": [200],
+                        "code": SDL.SDLModel.resultCode["SUCCESS"],
+                        "method": "VehicleInfo.DiagnosticMessage"
+                    }
+                };
+
+                this.client.send(JSONMessage);
+
+                break;
+
+                break;
+            }
+
+            case "VehicleInfo.SubscribeVehicleData": {
+
+                SDL.SDLVehicleInfoModel.SubscribeVehicleData(request);
+
+                break;
+            }
+
+            case "VehicleInfo.UnsubscribeVehicleData": {
+
+                SDL.SDLVehicleInfoModel.UnsubscribeVehicleData(request);
+
+                break;
+            }
+
+            case "VehicleInfo.GetVehicleType": {
+
+                SDL.SDLVehicleInfoModel.getVehicleType(request.id);
+
+                break;
+            }
+
+            case "VehicleInfo.IsReady": {
+
+                Em.Logger.log("FFW." + request.method + "Response");
+
+                // send repsonse
+                var JSONMessage = {
+                    "jsonrpc": "2.0",
+                    "id": request.id,
+                    "result": {
+                        "available": this.get('isReady'),
+                        "code": SDL.SDLModel.resultCode["SUCCESS"],
+                        "method": "VehicleInfo.IsReady"
+                    }
+                };
+
+                this.client.send(JSONMessage);
+
+                break;
+            }
+
+            default: {
+                // statements_def
+                break;
+            }
+            }
+        }
+    },
+
+    /**
+     * Send error response from onRPCRequest
+     *
+     * @param {Number}
+     *            resultCode
+     * @param {Number}
+     *            id
+     * @param {String}
+     *            method
+     */
+    sendError: function(resultCode, id, method, message) {
+
+        Em.Logger.log("FFW." + method + "Response");
+
+        if (resultCode != SDL.SDLModel.resultCode["SUCCESS"]) {
 
             // send repsonse
             var JSONMessage = {
                 "jsonrpc": "2.0",
-                "id": request.id,
-                "result": {
-                    "resultCode": resultCode, // type (enum) from SDL protocol
-                    "method": "VehicleInfo.GetVehicleDataResponse"
-                // request.params.dataType: vehicleData
+                "id": id,
+                "error": {
+                    "code": resultCode, // type (enum) from SDL protocol
+                    "message": message,
+                    "data": {
+                        "method": method
+                    }
                 }
             };
-            JSONMessage.result[SDL.SDLVehicleInfoModel.vehicleData[request.params.dataType].type] = vehicleData;
-            this.client.send( JSONMessage );
+            this.client.send(JSONMessage);
         }
+    },
 
-        if( request.method == "VehicleInfo.ReadDID" ){
+    /**
+     * Send response from onRPCRequest
+     *
+     * @param {Number}
+     *            resultCode
+     * @param {Number}
+     *            id
+     * @param {String}
+     *            method
+     */
+    sendVIResult: function(resultCode, id, method) {
 
-            SDL.SDLVehicleInfoModel.vehicleInfoReadDID( request.params, request.id );
+        Em.Logger.log("FFW." + method + "Response");
 
+        if (resultCode === SDL.SDLModel.resultCode["SUCCESS"]) {
+
+            // send repsonse
+            var JSONMessage = {
+                "jsonrpc": "2.0",
+                "id": id,
+                "result": {
+                    "code": resultCode,
+                    "method": method
+                }
+            };
+            this.client.send(JSONMessage);
         }
+    },
 
-        if( request.method == "VehicleInfo.GetDTCs" ){
+    /**
+     * Send response from onRPCRequest
+     *
+     * @param {Number} resultCode
+     * @param {Number} id
+     * @param {String} method
+     * @param {Object} data
+     */
+    sendVISubscribeVehicleDataResult: function(resultCode, id, method, data) {
 
-            SDL.SDLVehicleInfoModel.vehicleInfoGetDTCs( request.params, request.id );
+        Em.Logger.log("FFW." + method + "Response");
 
+        if (resultCode === SDL.SDLModel.resultCode["SUCCESS"]) {
+
+            // send repsonse
+            var JSONMessage = {
+                "jsonrpc": "2.0",
+                "id": id,
+                "result": data
+            };
+
+            JSONMessage.result.code = resultCode;
+            JSONMessage.result.method = method;
+
+            this.client.send(JSONMessage);
         }
+    },
 
-        if( request.method == "VehicleInfo.GetVehicleType" ){
+    /**
+     * Send error response from onRPCRequest
+     * 
+     * @param {Number}
+     *            resultCode
+     * @param {Number}
+     *            id
+     * @param {String}
+     *            method
+     */
+    sendGetVehicleDataError: function(resultCode, id, method, message, data) {
 
-            SDL.SDLVehicleInfoModel.getVehicleType( request.id );
+        Em.Logger.log("FFW." + method + "Response");
 
+        if (resultCode != SDL.SDLModel.resultCode["SUCCESS"]) {
+
+            // send repsonse
+            var JSONMessage = {
+                "jsonrpc": "2.0",
+                "id": id,
+                "error": {
+                    "code": resultCode, // type (enum) from SDL protocol
+                    "message": message,
+                    "data": data
+                }
+            };
+
+            JSONMessage.error.data.method = method;
+            this.client.send(JSONMessage);
         }
+    },
+
+    /**
+     * Send error response from onRPCRequest
+     * 
+     * @param {Number}
+     *            resultCode
+     * @param {Number}
+     *            id
+     * @param {String}
+     *            method
+     */
+    sendGetVehicleDataResut: function(resultCode, id, method, data) {
+
+        Em.Logger.log("FFW." + method + "Response");
+
+        // send repsonse
+        var JSONMessage = {
+            "jsonrpc": "2.0",
+            "id": id,
+            "result": data
+        };
+        JSONMessage.result.code = resultCode;
+        JSONMessage.result.method = method;
+        this.client.send(JSONMessage);
     },
 
     /**
@@ -165,8 +378,9 @@ FFW.VehicleInfo = FFW.RPCObserver.create( {
      * 
      * @type {Object} params
      */
-    OnVehicleData: function( params ) {
-        Em.Logger.log( "FFW.VehicleInfo.OnVehicleData" );
+    OnVehicleData: function(params) {
+
+        Em.Logger.log("FFW.VehicleInfo.OnVehicleData");
 
         // send repsonse
         var JSONMessage = {
@@ -174,7 +388,7 @@ FFW.VehicleInfo = FFW.RPCObserver.create( {
             "method": "VehicleInfo.OnVehicleData",
             "params": params
         };
-        this.client.send( JSONMessage );
+        this.client.send(JSONMessage);
     },
 
     /**
@@ -183,20 +397,21 @@ FFW.VehicleInfo = FFW.RPCObserver.create( {
      * @type {string} vehicleType
      * @type {int} id
      */
-    GetVehicleTypeResponse: function( vehicleType, id ) {
-        Em.Logger.log( "FFW.VehicleInfo.GetVehicleType" );
+    GetVehicleTypeResponse: function(vehicleType, id) {
+
+        Em.Logger.log("FFW.VehicleInfo.GetVehicleTypeResponse");
 
         var JSONMessage = {
             "jsonrpc": "2.0",
             "id": id,
             "result": {
-                "resultCode": "SUCCESS", // type (enum) from SDL protocol
-                "method": "VehicleInfo.GetVehicleTypeResponse",
+                "code": SDL.SDLModel.resultCode["SUCCESS"],
+                "method": "VehicleInfo.GetVehicleType",
                 "vehicleType": vehicleType
             }
         };
 
-        this.client.send( JSONMessage );
+        this.client.send(JSONMessage);
     },
 
     /**
@@ -208,72 +423,52 @@ FFW.VehicleInfo = FFW.RPCObserver.create( {
      * @type {string} result
      * @type {int} id
      */
-    vehicleInfoReadDIDResponse: function( dataResult, data, info, result, id ) {
-        Em.Logger.log( "FFW.VehicleInfo.ReadDID" );
+    vehicleInfoReadDIDResponse: function(didResult, resultCode, id) {
+
+        Em.Logger.log("FFW.VehicleInfo.ReadDIDResponse");
 
         var JSONMessage;
         // send repsonse
-        if( result != 'ENCRYPTED' ){
-            JSONMessage = {
-                "jsonrpc": "2.0",
-                "id": id,
-                "result": {
-                    "resultCode": result, // type (enum) from SDL protocol
-                    "method": "VehicleInfo.ReadDIDResponse",
-                    "info": info,
-                    "dataResult": dataResult,
-                    "data": data
-                }
-            };
-        }else{
-            JSONMessage = {
-                "jsonrpc": "2.0",
-                "id": id,
-                "result": {
-                    "resultCode": result, // type (enum) from SDL protocol
-                    "method": "VehicleInfo.ReadDIDResponse",
-                    "info": info
-                }
-            };
-        }
-        this.client.send( JSONMessage );
+        JSONMessage = {
+            "jsonrpc": "2.0",
+            "id": id,
+            "result": {
+                "code": SDL.SDLModel.resultCode[resultCode], // type (enum)
+                // from SDL
+                // protocol
+                "method": "VehicleInfo.ReadDID",
+                "didResult": didResult
+            }
+        };
+        this.client.send(JSONMessage);
     },
 
     /**
      * GetDTCs Response
      * 
-     * @type {array} data
-     * @type {string} info
-     * @type {string} result
-     * @type {int} id
+     * @type {Number} ecuHeader
+     * @type {Array} dtc
+     * @type {String} result
+     * @type {Number} id
      */
-    vehicleInfoGetDTCsResponse: function( data, info, result, id ) {
-        Em.Logger.log( "FFW.VehicleInfo.GetDTCs" );
+    vehicleInfoGetDTCsResponse: function(ecuHeader, dtc, result, id) {
+
+        Em.Logger.log("FFW.VehicleInfo.GetDTCsResponse");
 
         var JSONMessage;
         // send repsonse
-        if( result != 'ENCRYPTED' ){
-            JSONMessage = {
-                "jsonrpc": "2.0",
-                "id": id,
-                "result": {
-                    "resultCode": result, // type (enum) from SDL protocol
-                    "method": "VehicleInfo.GetDTCsResponse",
-                    "info": info,
-                    "dtcList": data
-                }
-            };
-        }else{
-            JSONMessage = {
-                "jsonrpc": "2.0",
-                "id": id,
-                "result": {
-                    "resultCode": result, // type (enum) from SDL protocol
-                    "method": "VehicleInfo.GetDTCsResponse",
-                    "info": info
-                }
-            };
-        }
-        this.client.send( JSONMessage );
+        JSONMessage = {
+            "jsonrpc": "2.0",
+            "id": id,
+            "result": {
+                "code": SDL.SDLModel.resultCode[result], // type (enum) from
+                // SDL protocol
+                "method": "VehicleInfo.GetDTCs",
+                "ecuHeader": ecuHeader,
+                "dtc": dtc
+            }
+        };
+
+        this.client.send(JSONMessage);
     }
-} )
+})

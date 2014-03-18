@@ -48,7 +48,7 @@ namespace NsMessageBroker
    {
    union {
       unsigned char   b8[20];
-      unsigned long   b32[5];
+      unsigned int   b32[5];
    } h;                       /**< h */
    union {
       unsigned char   b8[8];
@@ -56,7 +56,7 @@ namespace NsMessageBroker
    } c;                       /**< c */
    union {
       unsigned char   b8[64];
-      unsigned long   b32[16];
+      unsigned int   b32[16];
    } m;                       /**< m */
    unsigned char   count;          /**< count */
    };
@@ -65,7 +65,7 @@ namespace NsMessageBroker
    /**
     * \brief Constant table.
     */ 
-   const unsigned long _K[] = { 0x5a827999, 0x6ed9eba1, 0x8f1bbcdc, 0xca62c1d6 };
+   const unsigned int _K[] = { 0x5a827999, 0x6ed9eba1, 0x8f1bbcdc, 0xca62c1d6 };
 
    /**
     * \brief Constant table.
@@ -122,6 +122,14 @@ namespace NsMessageBroker
       rawBytes handshake_hybi00(const std::string &key1, const std::string &key2, const rawBytes &key3);
 
       /**
+      * \brief Parses WebSocket data header to retrieve packet size
+      * \param Buffer input buffer
+      * \param b_size buffer size
+      * \return Packet size
+      */
+      unsigned int parseWebSocketDataLength(const char* Buffer, unsigned int& b_size);
+
+      /**
       * \brief Parses WebSocket data
       * \param Buffer input buffer
       * \param b_size buffer size
@@ -135,7 +143,7 @@ namespace NsMessageBroker
       * \param b_size buffer size
       * \return -1 in case of issues, data length in case of success
       */
-      int prepareWebSocketDataHeader(char* Buffer, unsigned long b_size);
+      int prepareWebSocketDataHeader(unsigned char* Buffer, unsigned long long b_size);
    private:
       /**
       * \brief SHA1 hash calculator.

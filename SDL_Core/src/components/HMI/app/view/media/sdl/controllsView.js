@@ -55,11 +55,11 @@ SDL.SDLMediaControlls = Em.ContainerView.create( {
                                         + '<div class="track-info">'
                                         + '<div class="device">{{SDL.SDLAppController.model.deviceName}}</div>'
                                         + '<div class="divider_o"></div>'
-                                        + '<div class="title textLimit">{{SDL.SDLAppController.model.appInfo.field1}}</div>'
-                                        + '<div class="album textLimit">{{SDL.SDLAppController.model.appInfo.field2}}</div>'
-                                        + '<div class="artist textLimit"{{bindAttr class="SDL.SDLModel.protocolVersion2State:hidden"}}>{{SDL.SDLAppController.model.appInfo.field3}}</div>'
-                                        + '<div class="time"{{bindAttr class="SDL.SDLModel.protocolVersion2State:timeV2"}}>{{SDL.SDLAppController.model.appInfo.mediaClock}}</div>'
-                                        + '<img class="cd_logo" {{bindAttr src="SDL.SDLAppController.model.appInfo.trackIcon" class="SDL.SDLModel.protocolVersion2State:cd_logoV2"}} />'
+                                        + '<div class="title textLimit" {{bindAttr style="SDL.SDLAppController.model.appInfo.alignment"}}>{{SDL.SDLAppController.model.appInfo.field1}}</div>'
+                                        + '<div class="album textLimit" {{bindAttr style="SDL.SDLAppController.model.appInfo.alignment"}}>{{SDL.SDLAppController.model.appInfo.field2}}</div>'
+                                        + '<div class="artist textLimit"{{bindAttr class="SDL.SDLAppController.model.mediaPreset:hidden"}}>{{SDL.SDLAppController.model.appInfo.field3}}</div>'
+                                        + '<div class="time"{{bindAttr class="SDL.SDLAppController.model.mediaPreset:timeV2"}}>{{SDL.SDLAppController.model.appInfo.mediaClock}}</div>'
+                                        + '<img class="cd_logo" {{bindAttr src="SDL.SDLAppController.model.appInfo.trackIcon" class="SDL.SDLAppController.model.mediaPreset:cd_logoV2"}} />'
                                         + '</div>' + '{{/with}}' )
     } ),
 
@@ -77,7 +77,7 @@ SDL.SDLMediaControlls = Em.ContainerView.create( {
 
         classNames: 'player_controlls',
 
-        classNameBindings: 'SDL.SDLModel.protocolVersion2State:player_controllsV2',
+        classNameBindings: 'SDL.SDLAppController.model.mediaPreset:player_controllsV2',
 
         PrevTrackButton: SDL.Button.extend( SDL.PresetEvents, {
             elementId: 'app_view_controlls_prev_track_button_v2',
@@ -134,7 +134,7 @@ SDL.SDLMediaControlls = Em.ContainerView.create( {
 
         classNameBindings:
             [
-                'SDL.SDLModel.protocolVersion2State::hidden'
+                'SDL.SDLAppController.model.mediaPreset::hidden'
             ],
 
         classNames:
@@ -160,50 +160,66 @@ SDL.SDLMediaControlls = Em.ContainerView.create( {
                     '3',
                     '4',
                     '5',
-                    '6'
+                    '6',
+                    '7',
+                    '8'
                 ],
 
             1: SDL.Button.extend( SDL.PresetEvents, {
                 elementId: 'sdl_media_preset_button1',
-                classNames: 'a0 preset-item',
+                classNames: 'preset-item',
                 textBinding: 'SDL.SDLAppController.model.appInfo.customPresets.0',
                 templateName: 'text',
                 presetName: 'PRESET_1'
             } ),
             2: SDL.Button.extend( SDL.PresetEvents, {
                 elementId: 'sdl_media_preset_button2',
-                classNames: 'a1 preset-item',
+                classNames: 'preset-item',
                 textBinding: 'SDL.SDLAppController.model.appInfo.customPresets.1',
                 templateName: 'text',
                 presetName: 'PRESET_2'
             } ),
             3: SDL.Button.extend( SDL.PresetEvents, {
                 elementId: 'sdl_media_preset_button3',
-                classNames: 'a2 preset-item',
+                classNames: 'preset-item',
                 textBinding: 'SDL.SDLAppController.model.appInfo.customPresets.2',
                 templateName: 'text',
                 presetName: 'PRESET_3'
             } ),
             4: SDL.Button.extend( SDL.PresetEvents, {
                 elementId: 'sdl_media_preset_button4',
-                classNames: 'a3 preset-item',
+                classNames: 'preset-item',
                 textBinding: 'SDL.SDLAppController.model.appInfo.customPresets.3',
                 templateName: 'text',
                 presetName: 'PRESET_4'
             } ),
             5: SDL.Button.extend( SDL.PresetEvents, {
                 elementId: 'sdl_media_preset_button5',
-                classNames: 'a4 preset-item',
+                classNames: 'preset-item',
                 textBinding: 'SDL.SDLAppController.model.appInfo.customPresets.4',
                 templateName: 'text',
                 presetName: 'PRESET_5'
             } ),
             6: SDL.Button.extend( SDL.PresetEvents, {
                 elementId: 'sdl_media_preset_button6',
-                classNames: 'a5 preset-item',
+                classNames: 'preset-item',
                 textBinding: 'SDL.SDLAppController.model.appInfo.customPresets.5',
                 templateName: 'text',
                 presetName: 'PRESET_6'
+            } ),
+            7: SDL.Button.extend( SDL.PresetEvents, {
+                elementId: 'sdl_media_preset_button7',
+                classNames: 'preset-item',
+                textBinding: 'SDL.SDLAppController.model.appInfo.customPresets.6',
+                templateName: 'text',
+                presetName: 'PRESET_7'
+            } ),
+            8: SDL.Button.extend( SDL.PresetEvents, {
+                elementId: 'sdl_media_preset_button8',
+                classNames: 'preset-item',
+                textBinding: 'SDL.SDLAppController.model.appInfo.customPresets.7',
+                templateName: 'text',
+                presetName: 'PRESET_8'
             } )
         } )
     } )
