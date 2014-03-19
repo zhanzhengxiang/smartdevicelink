@@ -38,6 +38,8 @@
 
 #include "transport_manager/transport_adapter/client_connection_listener.h"
 
+#include <pthread.h>
+
 namespace transport_manager {
 namespace transport_adapter {
 
