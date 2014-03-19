@@ -54,7 +54,9 @@ ConditionalVariable::ConditionalVariable() {
   if (initialized != 0)
     LOG4CXX_ERROR(g_logger, "Failed to initialize "
                             "conditional variable attributes");
-  pthread_condattr_setclock(&attrs, CLOCK_MONOTONIC);
+#ifdef __linux__
+  pthread_condattr_setclock(&attrs, CLOCK_MONOTONIC); // Default (non linux) will use the CPU clock
+#endif
   initialized = pthread_cond_init(&cond_var_, &attrs);
   if (initialized != 0)
     LOG4CXX_ERROR(g_logger, "Failed to initialize "
@@ -94,10 +96,28 @@ void ConditionalVariable::Wait(AutoLock& auto_lock) {
     LOG4CXX_ERROR(g_logger, "Failed to wait for conditional variable");
 }
 
+#ifdef OS_LINUX
+static void current_time(struct timespec *ts) {
+  clock_gettime(CLOCK_MONOTONIC, ts);
+}
+#elif OS_MACOSX
+#include <mach/clock.h>
+#include <mach/mach.h>
+static void current_time(struct timespec *ts) {
+  clock_serv_t cclock;
+  mach_timespec_t mts;
+  host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
+  clock_get_time(cclock, &mts);
+  mach_port_deallocate(mach_task_self(), cclock);
+  ts->tv_sec = mts.tv_sec;
+  ts->tv_nsec = mts.tv_nsec;
+}
+#endif
+
 ConditionalVariable::WaitStatus ConditionalVariable::WaitFor(
     AutoLock& auto_lock, int32_t milliseconds){
   struct timespec now;
-  clock_gettime(CLOCK_MONOTONIC, &now);
+  current_time(&now);
   timespec wait_interval;
   wait_interval.tv_sec = now.tv_sec +
       (milliseconds / kMillisecondsPerSecond);
