@@ -139,6 +139,7 @@ void TcpClientListener::Thread() {
     setsockopt(connection_fd, IPPROTO_TCP, TCP_KEEPCNT, &keepcnt, sizeof(keepcnt));
     setsockopt(connection_fd, IPPROTO_TCP, TCP_KEEPINTVL, &keepintvl, sizeof(keepintvl));
     setsockopt(connection_fd, IPPROTO_TCP, SO_RCVTIMEO, &user_timeout, sizeof(user_timeout));
+    // NOTE: may need to set SO_SNDTIMEO
 #elif __QNX__ 
     // TODO (KKolodiy): Out of order!
     const int kMidLength = 4;
