@@ -68,10 +68,9 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "QNX")
   SET(BUILD_BACKTRACE_SUPPORT OFF)
   SET(EXTENDED_MEDIA_MODE OFF)
 elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
-    message(STATUS "building for Mac OSC")
     add_definitions(-DOS_MACOSX)
     #compile 32-bit 64-bit is having an issue
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -arch i386")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch i386")
 endif()
 
 if (BUILD_USB_SUPPORT)
