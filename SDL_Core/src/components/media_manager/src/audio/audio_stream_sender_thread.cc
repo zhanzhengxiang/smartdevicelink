@@ -38,6 +38,7 @@
 
 
 #include <string>
+#include <unistd.h>
 #include "application_manager/application_manager_impl.h"
 #include "application_manager/mobile_command_factory.h"
 #include "application_manager/application_impl.h"
