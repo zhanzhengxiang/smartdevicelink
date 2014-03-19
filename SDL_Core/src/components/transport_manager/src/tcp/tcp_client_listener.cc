@@ -49,7 +49,7 @@
 #  include <sys/time.h>
 #  include <netinet/in.h>
 #  include <netinet/tcp.h>
-#  include <netinet/tcp_var.h>
+//#  include <netinet/tcp_var.h>
 #endif  // __linux__
 
 #include "transport_manager/transport_adapter/transport_adapter_controller.h"
@@ -133,7 +133,13 @@ void TcpClientListener::Thread() {
     setsockopt(connection_fd, IPPROTO_TCP, TCP_KEEPCNT, &keepcnt, sizeof(keepcnt));
     setsockopt(connection_fd, IPPROTO_TCP, TCP_KEEPINTVL, &keepintvl, sizeof(keepintvl));
     setsockopt(connection_fd, IPPROTO_TCP, TCP_USER_TIMEOUT, &user_timeout, sizeof(user_timeout));
-#elif __QNX__  // __linux__
+#elif OS_MACOSX
+    setsockopt(connection_fd, SOL_SOCKET, SO_KEEPALIVE, &yes, sizeof(yes));
+    setsockopt(connection_fd, IPPROTO_TCP, TCP_KEEPALIVE, &keepidle, sizeof(keepidle));
+    setsockopt(connection_fd, IPPROTO_TCP, TCP_KEEPCNT, &keepcnt, sizeof(keepcnt));
+    setsockopt(connection_fd, IPPROTO_TCP, TCP_KEEPINTVL, &keepintvl, sizeof(keepintvl));
+    setsockopt(connection_fd, IPPROTO_TCP, TCP_USER_TIMEOUT, &user_timeout, sizeof(user_timeout));
+#elif __QNX__ 
     // TODO (KKolodiy): Out of order!
     const int kMidLength = 4;
     int mib[kMidLength];
