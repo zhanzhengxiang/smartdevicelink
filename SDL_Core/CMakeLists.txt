@@ -49,8 +49,8 @@ set(CMAKE_CXX_FLAGS_RELEASE "-s -O2") #It will be appended to CMAKE_CXX_FLAGS in
 
 option(EXTENDED_MEDIA_MODE "Turn on and off extended Madia Manager features relates to PulseAudio A2DP and GSteamer" OFF)
 option(BUILD_SHARED_LIBS "Build all libraries as shared (if ON) or static (if OFF)" OFF)
-option(BUILD_BT_SUPPORT "Bluetooth support" ON)
-option(BUILD_USB_SUPPORT "libusb support" ON)
+option(BUILD_BT_SUPPORT "Bluetooth support" OFF)
+option(BUILD_USB_SUPPORT "libusb support" OFF)
 option(BUILD_AVAHI_SUPPORT "libavahi support" OFF)
 option(BUILD_RWLOCK_SUPPORT "rwlocks support" OFF)
 option(BUILD_BACKTRACE_SUPPORT "backtrace support" ON)
@@ -69,6 +69,8 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "QNX")
   SET(EXTENDED_MEDIA_MODE OFF)
 elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
     add_definitions(-DOS_MACOSX)
+    #compile 32-bit 64-bit is having an issue
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch i386")
 endif()
 
 if (BUILD_USB_SUPPORT)
