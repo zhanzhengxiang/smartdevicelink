@@ -5,12 +5,6 @@ set (BROKER_LIBRARIES
 )
 ENDIF (${WEB_HMI})
 
-cmake_policy(PUSH)
-# make link_directories() treat paths relative to the source dir
-# info: cmake --help-policy CMP0015
-cmake_policy(SET CMP0015 NEW)
-link_directories(../thirdPartyLibs/libusbx)
-cmake_policy(POP)
 
 if (EXTENDED_MEDIA_MODE)
 set(default_media_inc
@@ -57,6 +51,12 @@ if (BUILD_AVAHI_SUPPORT)
 	list(APPEND LIBRARIES avahi-client avahi-common)
 endif()
 if (BUILD_USB_SUPPORT)
+  cmake_policy(PUSH)
+  # make link_directories() treat paths relative to the source dir
+  # info: cmake --help-policy CMP0015
+  cmake_policy(SET CMP0015 NEW)
+  link_directories(../thirdPartyLibs/libusbx)
+  cmake_policy(POP)
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
   list(APPEND LIBRARIES Libusb-1.0.16)
 endif()
