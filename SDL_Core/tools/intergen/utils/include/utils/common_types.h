@@ -90,10 +90,10 @@ class BasicRange {
   BasicRange(const std::string& min_str, const std::string& max_str)
       : min_(0),
         max_(0) {
-    bool valid_min = StringToNumber(min, &min_)
-        && Fraction::FromFloatPointString(min, &min_fract_);
-    bool valid_max = StringToNumber(max, &max_)
-        && Fraction::FromFloatPointString(max, &max_fract_);
+    bool valid_min = StringToNumber(min(), &min_)
+        && Fraction::FromFloatPointString(min(), &min_fract_);
+    bool valid_max = StringToNumber(max(), &max_)
+        && Fraction::FromFloatPointString(max(), &max_fract_);
     assert(valid_min && valid_max);
   }
   // Tells if |value| belongs to current range (boundaries are included)
