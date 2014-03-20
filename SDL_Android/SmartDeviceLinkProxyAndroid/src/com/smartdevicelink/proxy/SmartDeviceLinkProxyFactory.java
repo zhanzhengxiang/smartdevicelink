@@ -1,12 +1,10 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
 package com.smartdevicelink.proxy;
 
 import com.smartdevicelink.exception.SmartDeviceLinkException;
-
+@Deprecated
 public class SmartDeviceLinkProxyFactory {
 	
+	@Deprecated
 	public static SmartDeviceLinkProxy buildSmartDeviceLinkProxy(IProxyListener listener) {
 		SmartDeviceLinkProxy ret = null;
 		try {

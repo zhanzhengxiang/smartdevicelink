@@ -1,7 +1,7 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
 package com.smartdevicelink.proxy.constants;
+
+import java.lang.reflect.Field;
+import java.util.Hashtable;
 
 public class Names {
 	public static final String request = "request";
@@ -25,6 +25,7 @@ public class Names {
 	public static final String PerformInteraction = "PerformInteraction";
 	public static final String DialNumber = "DialNumber";
 	public static final String EncodedSyncPData = "EncodedSyncPData";
+	public static final String SyncPData = "SyncPData";
 	public static final String SubscribeButton = "SubscribeButton";
 	public static final String UnsubscribeButton = "UnsubscribeButton";
 	public static final String SubscribeVehicleData = "SubscribeVehicleData";
@@ -53,7 +54,7 @@ public class Names {
 	public static final String displayLayout = "displayLayout";
 	public static final String ttsName = "ttsName";
 	public static final String hmiDisplayLanguageDesired = "hmiDisplayLanguageDesired";
-	public static final String appType = "appType";
+	public static final String appHMIType = "appHMIType";
 	public static final String appID = "appID";
 	public static final String vrHelpTitle = "vrHelpTitle";
 	public static final String graphic = "graphic";
@@ -90,6 +91,11 @@ public class Names {
 	public static final String OnHMIStatus = "OnHMIStatus";
 	public static final String OnTBTClientState = "OnTBTClientState";
 	public static final String OnEncodedSyncPData = "OnEncodedSyncPData";
+	public static final String onEncodedSyncPDataResponse = "onEncodedSyncPDataResponse";
+	public static final String OnSyncPData = "OnSyncPData";
+	public static final String onOnSyncPData = "onOnSyncPData";
+	public static final String onSyncPDataResponse = "onSyncPDataResponse";
+	public static final String onOnEncodedSyncPData = "onOnEncodedSyncPData";
 	public static final String OnDriverDistraction = "OnDriverDistraction";
 	public static final String OnAppInterfaceUnregistered = "OnAppInterfaceUnregistered";
 	public static final String OnProxyClosed = "OnProxyClosed";
@@ -97,7 +103,7 @@ public class Names {
 	public static final String OnProxyOpened = "OnProxyOpened";
 	public static final String OnProxyUnusable = "OnProxyUnusable";
 	public static final String OnHMILevelChange = "OnHMILevelChange";
-	public static final String OnSyncChoiceChosen = "OnSyncChoiceChosen";
+	public static final String OnSmartDeviceLinkChoiceChosen = "OnSmartDeviceLinkChoiceChosen";
 	public static final String OnPermissionsChange = "OnPermissionsChange";
 	public static final String OnScreenPresetsAvailable = "OnScreenPresetsAvailable";
 	public static final String isHighlighted = "isHighlighted";
@@ -112,8 +118,7 @@ public class Names {
 	public static final String samplingRate = "samplingRate";
 	public static final String audioType = "audioType";
 	public static final String satRadioESN = "satRadioESN";
-	public static final String encrypted = "encrypted";
-	public static final String dtcList = "dtcList";
+	public static final String dtc = "dtc";
 	public static final String tryAgainTime = "tryAgainTime";
 
 	public static final String success = "success";
@@ -136,7 +141,7 @@ public class Names {
 	public static final String subscriptionType = "subscriptionType";
 	public static final String data = "data";
 	public static final String correlationID = "correlationID";
-	public static final String syncMsgVersion = "syncMsgVersion";
+	public static final String smartDeviceLinkMsgVersion = "syncMsgVersion";
 	public static final String majorVersion = "majorVersion";
 	public static final String minorVersion = "minorVersion";
 	public static final String appName = "appName";
@@ -190,6 +195,7 @@ public class Names {
 	public static final String vehicleDataCapabilities = "vehicleDataCapabilities";
 	public static final String speechCapabilities = "speechCapabilities";
 	public static final String vrCapabilities = "vrCapabilities";
+	public static final String audioPassThruCapabilities = "audioPassThruCapabilities";
 	public static final String buttonCapabilities = "buttonCapabilities";
 	public static final String displayCapabilities = "displayCapabilities";
 	public static final String hmiZoneCapabilities = "hmiZoneCapabilities";
@@ -216,7 +222,7 @@ public class Names {
 	public static final String heading = "heading";
 	public static final String speed = "speed";
 	public static final String number = "number";
-	public static final String SmartDeviceLinkFileName = "SmartDeviceLinkFileName";
+	public static final String smartDeviceLinkFileName = "syncFileName";
 	public static final String localFileName = "localFileName";
 	public static final String maxDuration = "maxDuration";
 	public static final String timerMode = "timerMode";
@@ -240,9 +246,10 @@ public class Names {
 	public static final String hmiLevel = "hmiLevel";
 	public static final String audioStreamingState = "audioStreamingState";
 	public static final String systemContext = "systemContext";
-	public static final String SmartDeviceLinkChoice = "SmartDeviceLinkChoice";
-	public static final String SmartDeviceLinkCommand = "SmartDeviceLinkCommand";
+	public static final String smartDeviceLinkChoice = "smartDeviceLinkChoice";
+	public static final String smartDeviceLinkCommand = "smartDeviceLinkCommand";
 	public static final String URL = "URL";
+	public static final String Timeout = "Timeout";
 	public static final String PermissionGroupName = "PermissionGroupName";
 	public static final String PermissionGroupStatus = "PermissionGroupStatus";
 	public static final String PermissionGroupItems = "PermissionGroupItems";
@@ -267,10 +274,35 @@ public class Names {
 	public static final String genericbinary = "genericbinary";
 	public static final String GPSData = "GPSData";
 	public static final String gps = "gps";
+	public static final String fuelLevel_State = "fuelLevel_State";
+	public static final String instantFuelConsumption = "instantFuelConsumption";
+	public static final String beltStatus = "beltStatus";
+	public static final String bodyInformation = "bodyInformation";
+	public static final String deviceStatus = "deviceStatus";
+	public static final String driverBraking = "driverBraking";
+	public static final String wiperStatus = "wiperStatus";
+	public static final String fuelEconomy = "fuelEconomy";
+	public static final String engineOilLife = "engineOilLife";
+	public static final String headLampStatus = "headLampStatus";
+	public static final String brakeTorque = "brakeTorque";
+	public static final String turboBoost = "turboBoost";
+	public static final String coolantTemp = "coolantTemp";
+	public static final String airFuelRatio = "airFuelRatio";
+	public static final String coolingHeadTemp = "coolingHeadTemp";
+	public static final String oilTemp = "oilTemp";
+	public static final String intakeAirTemp = "intakeAirTemp";
+	public static final String gearShiftAdvice = "gearShiftAdvice";
+	public static final String acceleration = "acceleration";
+	public static final String accPedalPosition = "accPedalPosition";
+	public static final String clutchPedalPosition = "clutchPedalPosition";
+	public static final String reverseGearStatus = "reverseGearStatus";
+	public static final String accTorque = "accTorque";
+	public static final String evInfo = "evInfo";
+	public static final String ambientLightStatus = "ambientLightStatus";
 	public static final String dataType = "dataType";
 	public static final String identifier = "identifier";
 	public static final String statusByte = "statusByte";
-	public static final String dataResult = "dataResult";
+	public static final String didResult = "didResult";
 	public static final String ecuName = "ecuName";
 	public static final String didLocation = "didLocation";
 	public static final String value = "value";
@@ -295,5 +327,82 @@ public class Names {
 	public static final String distanceToManeuverScale = "distanceToManeuverScale";
 	public static final String maneuverComplete = "maneuverComplete";
 	public static final String turnList = "turnList";
-	public static final String Timeout = "Timeout";
+
+    public static final String driverBeltDeployed = "driverBeltDeployed";
+    public static final String passengerBeltDeployed = "passengerBeltDeployed";
+    public static final String passengerBuckleBelted = "passengerBuckleBelted";
+    public static final String driverBuckleBelted = "driverBuckleBelted";
+    public static final String leftRow2BuckleBelted = "leftRow2BuckleBelted";
+    public static final String passengerChildDetected = "passengerChildDetected";
+    public static final String rightRow2BuckleBelted = "rightRow2BuckleBelted";
+    public static final String middleRow2BuckleBelted = "middleRow2BuckleBelted";
+    public static final String middleRow3BuckleBelted = "middleRow3BuckleBelted";
+    public static final String leftRow3BuckleBelted = "leftRow3BuckleBelted";
+    public static final String rightRow3BuckleBelted = "rightRow3BuckleBelted";
+    public static final String rearInflatableBelted = "rearInflatableBelted";
+    public static final String leftRearInflatableBelted = "leftRearInflatableBelted";
+    public static final String rightRearInflatableBelted = "rightRearInflatableBelted";
+    public static final String middleRow1BeltDeployed = "middleRow1BeltDeployed";
+    public static final String middleRow1BuckleBelted = "middleRow1BuckleBelted";
+
+    public static final String graphicSupported = "graphicSupported";
+    public static final String muteAudio = "muteAudio";
+    public static final String parkBrakeActive = "parkBrakeActive";
+    public static final String ignitionStableStatus = "ignitionStableStatus";
+    public static final String ignitionStatus = "ignitionStatus";
+    
+    public static final String voiceRecOn = "voiceRecOn";
+    public static final String btIconOn = "btIconOn";
+    public static final String callActive = "callActive";
+    public static final String phoneRoaming = "phoneRoaming";
+    public static final String textMsgAvailable = "textMsgAvailable";
+    public static final String battLevelStatus = "battLevelStatus";
+    public static final String stereoAudioOutputMuted = "stereoAudioOutputMuted";
+    public static final String monoAudioOutputMuted = "monoAudioOutputMuted";
+    public static final String signalLevelStatus = "signalLevelStatus";
+    public static final String primaryAudioSource = "primaryAudioSource";
+    public static final String eCallEventActive = "eCallEventActive";
+
+    public static final String fuelEconomySinceLastReset = "fuelEconomySinceLastReset";
+    public static final String currentTripFuelEconomy = "currentTripFuelEconomy";
+    public static final String averageTripFuelEconomy = "averageTripFuelEconomy";
+    public static final String currentCycleFuelEconomy = "currentCycleFuelEconomy";
+
+    public static final String lightSwitchStatus = "lightSwitchStatus";
+    public static final String highBeamsOn = "highBeamsOn";
+
+    public static final String electricFuelConsumption = "electricFuelConsumption";
+    public static final String stateOfCharge = "stateOfCharge";
+    public static final String fuelMaintenanceMode = "fuelMaintenanceMode";
+    public static final String distanceToEmpty = "distanceToEmpty";
+    
+    public static final String dtcMask = "dtcMask";
+    
+    public static final String GetVehicleDataExtend = "com.smartdevicelink.proxy.extend.rpc.GetVehicleDataResponseExtend";
+    public static final String SubscribeVehicleDataExtend = "com.smartdevicelink.proxy.extend.rpc.SubscribeVehicleDataResponseExtend";
+    public static final String UnsubscribeVehicleDataExtend = "com.smartdevicelink.proxy.extend.rpc.UnsubscribeVehicleDataResponseExtend";
+    public static final String OnVehicleDataExtend = "com.smartdevicelink.proxy.extend.rpc.OnVehicleDataExtend";
+    public static final String VersionExtend = "com.smartdevicelink.proxy.extend.proxy.VersionExtend";
+    public static final String ListenerExtend = "com.smartdevicelink.proxy.extend.interfaces.IProxyListenerExtend";
+    
+    public static final Hashtable<String, Object> getNamesList()
+    {
+		Hashtable <String, Object> returnHash = new Hashtable<String, Object>();
+    	for (Field field : Names.class.getDeclaredFields())
+		{
+			String sName = field.getName();
+			try {
+				Object oValue = field.get(sName);
+				returnHash.put(sName, oValue);
+				
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}			
+		}
+    	return returnHash;
+    }
 }

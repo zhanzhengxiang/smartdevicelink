@@ -1,6 +1,3 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
 package com.smartdevicelink.transport;
 
 import java.io.IOException;
@@ -15,12 +12,12 @@ import android.bluetooth.BluetoothSocket;
 
 import com.smartdevicelink.exception.SmartDeviceLinkException;
 import com.smartdevicelink.exception.SmartDeviceLinkExceptionCause;
-import com.smartdevicelink.trace.SyncTrace;
+import com.smartdevicelink.trace.SmartDeviceLinkTrace;
 import com.smartdevicelink.trace.enums.InterfaceActivityDirection;
 import com.smartdevicelink.util.DebugTool;
 
 /**
- * Bluetooth Transport Implementation. This transport advertises its existence to SmartDeviceLink by publishing an SDP record and waiting for an incoming connection from SmartDeviceLink. Connection is verified by checking for the SmartDeviceLink UUID. For more detailed information please refer to the <a href="#bluetoothTransport">Bluetooth Transport Guide</a>.
+ * Bluetooth Transport Implementation. This transport advertises its existence to SMARTDEVICELINK by publishing an SDP record and waiting for an incoming connection from SMARTDEVICELINK. Connection is verified by checking for the SMARTDEVICELINK UUID. For more detailed information please refer to the <a href="#bluetoothTransport">Bluetooth Transport Guide</a>.
  *
  */
 public class BTTransport extends SmartDeviceLinkTransport {	
@@ -46,18 +43,19 @@ public class BTTransport extends SmartDeviceLinkTransport {
 	} // end-ctor
 	
 	public void openConnection () throws SmartDeviceLinkException {    	
+		
 		// Get the device's default Bluetooth Adapter
 		_adapter = BluetoothAdapter.getDefaultAdapter();
 		
 		// Test if Adapter exists
 		if (_adapter == null) {
-			throw new SmartDeviceLinkException("No Bluetooth adapter found. Bluetooth adapter must exist to communicate with SmartDeviceLink.", SmartDeviceLinkExceptionCause.BLUETOOTH_ADAPTER_NULL);
+			throw new SmartDeviceLinkException("No Bluetooth adapter found. Bluetooth adapter must exist to communicate with SMARTDEVICELINK.", SmartDeviceLinkExceptionCause.BLUETOOTH_ADAPTER_NULL);
 		}
 		
 		// Test if Bluetooth is enabled
 		try {
 			if (!_adapter.isEnabled()) {
-				throw new SmartDeviceLinkException("Bluetooth adapter must be enabled to instantiate a SmartDeviceLinkProxy object.", SmartDeviceLinkExceptionCause.BLUETOOTH_DISABLED);
+				throw new SmartDeviceLinkException("Bluetooth adapter must be enabled to instantiate a SMARTDEVICELINKProxy object.", SmartDeviceLinkExceptionCause.BLUETOOTH_DISABLED);
 			}
 		} catch (SecurityException e) {
 			throw new SmartDeviceLinkException("Insufficient permissions to interact with the Bluetooth Adapter.", SmartDeviceLinkExceptionCause.PERMISSION_DENIED);
@@ -67,23 +65,23 @@ public class BTTransport extends SmartDeviceLinkTransport {
 		_bluetoothAdapterMonitor = new BluetoothAdapterMonitor(_adapter);
 		
 		try {
-			_serverSocket = _adapter.listenUsingRfcommWithServiceRecord("SmartDeviceLinkProxy", _listeningServiceUUID);
+			_serverSocket = _adapter.listenUsingRfcommWithServiceRecord("SMARTDEVICELINKProxy", _listeningServiceUUID);
 		} catch (IOException ex) {
 			
 			// Test to determine if the bluetooth has been disabled since last check			
 			if (!_adapter.isEnabled()) {
-				throw new SmartDeviceLinkException("Bluetooth adapter must be on to instantiate a SmartDeviceLinkProxy object.", SmartDeviceLinkExceptionCause.BLUETOOTH_DISABLED);
+				throw new SmartDeviceLinkException("Bluetooth adapter must be on to instantiate a SMARTDEVICELINKProxy object.", SmartDeviceLinkExceptionCause.BLUETOOTH_DISABLED);
 			}
 			
-			throw new SmartDeviceLinkException("Could not open connection to SmartDeviceLink.", ex, SmartDeviceLinkExceptionCause.SMARTDEVICELINK_CONNECTION_FAILED);
+			throw new SmartDeviceLinkException("Could not open connection to SMARTDEVICELINK.", ex, SmartDeviceLinkExceptionCause.SMARTDEVICELINK_CONNECTION_FAILED);
 		} 
 		
 		// Test to ensure serverSocket is not null
 		if (_serverSocket == null) {
-			throw new SmartDeviceLinkException("Could not open connection to SmartDeviceLink.", SmartDeviceLinkExceptionCause.SMARTDEVICELINK_CONNECTION_FAILED);
+			throw new SmartDeviceLinkException("Could not open connection to SMARTDEVICELINK.", SmartDeviceLinkExceptionCause.SMARTDEVICELINK_CONNECTION_FAILED);
 		}
 		
-		SyncTrace.logTransportEvent("BTTransport: listening for incoming connect to service ID " + _listeningServiceUUID, null, InterfaceActivityDirection.Receive, null, 0, SMARTDEVICELINK_LIB_TRACE_KEY);
+		SmartDeviceLinkTrace.logTransportEvent("BTTransport: listening for incoming connect to service ID " + _listeningServiceUUID, null, InterfaceActivityDirection.Receive, null, 0, SMARTDEVICELINK_LIB_TRACE_KEY);
 		
 		// Setup transportReader thread
 		_transportReader = new TransportReaderThread();
@@ -100,7 +98,7 @@ public class BTTransport extends SmartDeviceLinkTransport {
 	}
 
 	/**
-	 * Destroys the transport between SmartDeviceLink and the mobile app
+	 * Destroys the transport between SMARTDEVICELINK and the mobile app
 	 * 
 	 * @param msg
 	 * @param ex
@@ -118,7 +116,7 @@ public class BTTransport extends SmartDeviceLinkTransport {
 			disconnectMsg += ", " + ex.toString();
 		} // end-if
 
-		SyncTrace.logTransportEvent("BTTransport.disconnect: " + disconnectMsg, null, InterfaceActivityDirection.Transmit, null, 0, SMARTDEVICELINK_LIB_TRACE_KEY);
+		SmartDeviceLinkTrace.logTransportEvent("BTTransport.disconnect: " + disconnectMsg, null, InterfaceActivityDirection.Transmit, null, 0, SMARTDEVICELINK_LIB_TRACE_KEY);
 
 		try {			
 			if (_transportReader != null) {
@@ -215,7 +213,7 @@ public class BTTransport extends SmartDeviceLinkTransport {
 		}
 		
 		private void acceptConnection() {
-			SyncTrace.logTransportEvent("BTTransport: Waiting for incoming RFCOMM connect", "", InterfaceActivityDirection.Receive, null, 0, SMARTDEVICELINK_LIB_TRACE_KEY);
+			SmartDeviceLinkTrace.logTransportEvent("BTTransport: Waiting for incoming RFCOMM connect", "", InterfaceActivityDirection.Receive, null, 0, SMARTDEVICELINK_LIB_TRACE_KEY);
 			
 			try {
 				// Blocks thread until connection established.
@@ -228,8 +226,8 @@ public class BTTransport extends SmartDeviceLinkTransport {
 				
 				// Log info of the connected device
 				BluetoothDevice btDevice = _activeSocket.getRemoteDevice();
-				String btDeviceInfoXml = SyncTrace.getBTDeviceInfo(btDevice);
-				SyncTrace.logTransportEvent("BTTransport: RFCOMM Connection Accepted", btDeviceInfoXml, InterfaceActivityDirection.Receive, null, 0, SMARTDEVICELINK_LIB_TRACE_KEY);
+				String btDeviceInfoXml = SmartDeviceLinkTrace.getBTDeviceInfo(btDevice);
+				SmartDeviceLinkTrace.logTransportEvent("BTTransport: RFCOMM Connection Accepted", btDeviceInfoXml, InterfaceActivityDirection.Receive, null, 0, SMARTDEVICELINK_LIB_TRACE_KEY);
 				
 				_output = _activeSocket.getOutputStream();
 				_input = _activeSocket.getInputStream();
@@ -243,7 +241,7 @@ public class BTTransport extends SmartDeviceLinkTransport {
 					
 					// Check to see if Bluetooth was disabled
 					if (_adapter != null && !_adapter.isEnabled()) {
-						disconnect("Bluetooth Adapater has been disabled.", new SmartDeviceLinkException("Bluetooth adapter must be enabled to instantiate a SmartDeviceLinkProxy object.", e, SmartDeviceLinkExceptionCause.BLUETOOTH_DISABLED));
+						disconnect("Bluetooth Adapater has been disabled.", new SmartDeviceLinkException("Bluetooth adapter must be enabled to instantiate a SMARTDEVICELINKProxy object.", e, SmartDeviceLinkExceptionCause.BLUETOOTH_DISABLED));
 					} else {
 						disconnect("Failed to accept connection", e);
 					}
@@ -271,7 +269,7 @@ public class BTTransport extends SmartDeviceLinkTransport {
 						
 						// Check to see if Bluetooth was disabled
 						if (_adapter != null && !_adapter.isEnabled()) {
-							disconnect("Bluetooth Adapater has been disabled.", new SmartDeviceLinkException("Bluetooth adapter must be enabled to instantiate a SmartDeviceLinkProxy object.", e, SmartDeviceLinkExceptionCause.BLUETOOTH_DISABLED));
+							disconnect("Bluetooth Adapater has been disabled.", new SmartDeviceLinkException("Bluetooth adapter must be enabled to instantiate a SMARTDEVICELINKProxy object.", e, SmartDeviceLinkExceptionCause.BLUETOOTH_DISABLED));
 						} else {
 							disconnect("Failed to read from Bluetooth transport.", e);
 						}
@@ -347,7 +345,7 @@ public class BTTransport extends SmartDeviceLinkTransport {
 			if (_bluetoothAdapter != null && !_bluetoothAdapter.isEnabled()) {
 				// Bluetooth adapter has been disabled, disconnect the transport
 				disconnect("Bluetooth adapter has been disabled.", 
-						   new SmartDeviceLinkException("Bluetooth adapter must be enabled to instantiate a SmartDeviceLinkProxy object.", SmartDeviceLinkExceptionCause.BLUETOOTH_DISABLED));
+						   new SmartDeviceLinkException("Bluetooth adapter must be enabled to instantiate a SMARTDEVICELINKProxy object.", SmartDeviceLinkExceptionCause.BLUETOOTH_DISABLED));
 			}
 		}
 		

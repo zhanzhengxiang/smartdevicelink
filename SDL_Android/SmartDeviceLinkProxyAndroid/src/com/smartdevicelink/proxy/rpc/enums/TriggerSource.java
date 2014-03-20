@@ -1,13 +1,24 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
 package com.smartdevicelink.proxy.rpc.enums;
 
 import java.util.EnumSet;
 
+/**
+ * Indicates whether choice/command was selected via VR or via a menu selection
+ * (using SEEKRIGHT/SEEKLEFT, TUNEUP, TUNEDOWN and OK buttons)
+ * 
+ * @since SmartDeviceLink 1.0
+ * 
+ */
 public enum TriggerSource {
-    TS_MENU("MENU"),
-    TS_VR("VR");
+	/**
+	 * Selection made via menu (i.e. using SEEKRIGHT/SEEKLEFT, TUNEUP, TUNEDOWN
+	 * and OK buttons)
+	 */
+	TS_MENU("MENU"),
+	/**
+	 * Selection made via VR session
+	 */
+	TS_VR("VR");
 
     String internalName;
     

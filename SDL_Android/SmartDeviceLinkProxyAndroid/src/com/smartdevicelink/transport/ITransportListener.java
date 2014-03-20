@@ -1,6 +1,3 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
 package com.smartdevicelink.transport;
 
 public interface ITransportListener {

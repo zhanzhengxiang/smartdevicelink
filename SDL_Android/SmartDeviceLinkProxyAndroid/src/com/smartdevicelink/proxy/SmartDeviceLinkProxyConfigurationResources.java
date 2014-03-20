@@ -1,30 +1,27 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
 package com.smartdevicelink.proxy;
 
 import android.telephony.TelephonyManager;
 
 public class SmartDeviceLinkProxyConfigurationResources {
-	private String _SmartDeviceLinkConfigurationFilePath;
+	private String _smartDeviceLinkConfigurationFilePath;
 	private TelephonyManager _telephonyManager;
 	
 	public SmartDeviceLinkProxyConfigurationResources() {
 		this(null, null);
 	}
 	
-	public SmartDeviceLinkProxyConfigurationResources(String SmartDeviceLinkConfigurationFilePath, 
+	public SmartDeviceLinkProxyConfigurationResources(String smartDeviceLinkConfigurationFilePath, 
 			TelephonyManager telephonyManager) {
-		_SmartDeviceLinkConfigurationFilePath = SmartDeviceLinkConfigurationFilePath;
+		_smartDeviceLinkConfigurationFilePath = smartDeviceLinkConfigurationFilePath;
 		_telephonyManager = telephonyManager;
 	}
 	
-	public void setSmartDeviceLinkConfigurationFilePath(String SmartDeviceLinkConfigurationFilePath) {
-		_SmartDeviceLinkConfigurationFilePath = SmartDeviceLinkConfigurationFilePath;
+	public void setSmartDeviceLinkConfigurationFilePath(String smartDeviceLinkConfigurationFilePath) {
+		_smartDeviceLinkConfigurationFilePath = smartDeviceLinkConfigurationFilePath;
 	}
 	
 	public String getSmartDeviceLinkConfigurationFilePath() {
-		return _SmartDeviceLinkConfigurationFilePath;
+		return _smartDeviceLinkConfigurationFilePath;
 	}
 	
 	public void setTelephonyManager(TelephonyManager telephonyManager) {

@@ -1,14 +1,17 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
 package com.smartdevicelink.proxy;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import android.app.Service;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
 import com.smartdevicelink.exception.SmartDeviceLinkException;
 import com.smartdevicelink.exception.SmartDeviceLinkExceptionCause;
@@ -19,72 +22,30 @@ import com.smartdevicelink.messageDispatcher.InternalProxyMessageComparitor;
 import com.smartdevicelink.messageDispatcher.OutgoingProtocolMessageComparitor;
 import com.smartdevicelink.messageDispatcher.ProxyMessageDispatcher;
 import com.smartdevicelink.protocol.ProtocolMessage;
+import com.smartdevicelink.protocol.SmartDeviceLinkProtocol;
 import com.smartdevicelink.protocol.enums.FunctionID;
 import com.smartdevicelink.protocol.enums.MessageType;
 import com.smartdevicelink.protocol.enums.SessionType;
 import com.smartdevicelink.proxy.callbacks.InternalProxyMessage;
-import com.smartdevicelink.proxy.callbacks.OnProxyClosed;
 import com.smartdevicelink.proxy.callbacks.OnError;
+import com.smartdevicelink.proxy.callbacks.OnProxyClosed;
 import com.smartdevicelink.proxy.constants.Names;
+import com.smartdevicelink.proxy.interfaces.IProxyListenerALM;
 import com.smartdevicelink.proxy.interfaces.IProxyListenerBase;
-import com.smartdevicelink.proxy.rpc.AddCommand;
-import com.smartdevicelink.proxy.rpc.AddCommandResponse;
-import com.smartdevicelink.proxy.rpc.AddSubMenu;
-import com.smartdevicelink.proxy.rpc.AddSubMenuResponse;
-import com.smartdevicelink.proxy.rpc.Alert;
-import com.smartdevicelink.proxy.rpc.AlertResponse;
-import com.smartdevicelink.proxy.rpc.ButtonCapabilities;
-import com.smartdevicelink.proxy.rpc.Choice;
-import com.smartdevicelink.proxy.rpc.CreateInteractionChoiceSet;
-import com.smartdevicelink.proxy.rpc.CreateInteractionChoiceSetResponse;
-import com.smartdevicelink.proxy.rpc.DeleteCommand;
-import com.smartdevicelink.proxy.rpc.DeleteCommandResponse;
-import com.smartdevicelink.proxy.rpc.DeleteInteractionChoiceSet;
-import com.smartdevicelink.proxy.rpc.DeleteInteractionChoiceSetResponse;
-import com.smartdevicelink.proxy.rpc.DeleteSubMenu;
-import com.smartdevicelink.proxy.rpc.DeleteSubMenuResponse;
-import com.smartdevicelink.proxy.rpc.DisplayCapabilities;
-import com.smartdevicelink.proxy.rpc.EncodedSyncPData;
-import com.smartdevicelink.proxy.rpc.EncodedSyncPDataResponse;
-import com.smartdevicelink.proxy.rpc.GenericResponse;
-import com.smartdevicelink.proxy.rpc.OnAppInterfaceUnregistered;
-import com.smartdevicelink.proxy.rpc.OnButtonEvent;
-import com.smartdevicelink.proxy.rpc.OnButtonPress;
-import com.smartdevicelink.proxy.rpc.OnCommand;
-import com.smartdevicelink.proxy.rpc.OnDriverDistraction;
-import com.smartdevicelink.proxy.rpc.OnEncodedSyncPData;
-import com.smartdevicelink.proxy.rpc.OnHMIStatus;
-import com.smartdevicelink.proxy.rpc.OnPermissionsChange;
-import com.smartdevicelink.proxy.rpc.OnTBTClientState;
-import com.smartdevicelink.proxy.rpc.PerformInteraction;
-import com.smartdevicelink.proxy.rpc.PerformInteractionResponse;
-import com.smartdevicelink.proxy.rpc.RegisterAppInterface;
-import com.smartdevicelink.proxy.rpc.RegisterAppInterfaceResponse;
-import com.smartdevicelink.proxy.rpc.ResetGlobalProperties;
-import com.smartdevicelink.proxy.rpc.ResetGlobalPropertiesResponse;
-import com.smartdevicelink.proxy.rpc.SetGlobalProperties;
-import com.smartdevicelink.proxy.rpc.SetGlobalPropertiesResponse;
-import com.smartdevicelink.proxy.rpc.SetMediaClockTimer;
-import com.smartdevicelink.proxy.rpc.SetMediaClockTimerResponse;
-import com.smartdevicelink.proxy.rpc.Show;
-import com.smartdevicelink.proxy.rpc.ShowResponse;
-import com.smartdevicelink.proxy.rpc.Speak;
-import com.smartdevicelink.proxy.rpc.SpeakResponse;
-import com.smartdevicelink.proxy.rpc.SubscribeButton;
-import com.smartdevicelink.proxy.rpc.SubscribeButtonResponse;
-import com.smartdevicelink.proxy.rpc.SyncMsgVersion;
-import com.smartdevicelink.proxy.rpc.TTSChunk;
-import com.smartdevicelink.proxy.rpc.UnregisterAppInterface;
-import com.smartdevicelink.proxy.rpc.UnregisterAppInterfaceResponse;
-import com.smartdevicelink.proxy.rpc.UnsubscribeButton;
-import com.smartdevicelink.proxy.rpc.UnsubscribeButtonResponse;
+import com.smartdevicelink.proxy.rpc.*;
+import com.smartdevicelink.proxy.rpc.enums.AppHMIType;
 import com.smartdevicelink.proxy.rpc.enums.AudioStreamingState;
+import com.smartdevicelink.proxy.rpc.enums.AudioType;
+import com.smartdevicelink.proxy.rpc.enums.BitsPerSample;
 import com.smartdevicelink.proxy.rpc.enums.ButtonName;
+import com.smartdevicelink.proxy.rpc.enums.FileType;
 import com.smartdevicelink.proxy.rpc.enums.GlobalProperty;
 import com.smartdevicelink.proxy.rpc.enums.HMILevel;
 import com.smartdevicelink.proxy.rpc.enums.HmiZoneCapabilities;
+import com.smartdevicelink.proxy.rpc.enums.ImageType;
 import com.smartdevicelink.proxy.rpc.enums.InteractionMode;
 import com.smartdevicelink.proxy.rpc.enums.Language;
+import com.smartdevicelink.proxy.rpc.enums.SamplingRate;
 import com.smartdevicelink.proxy.rpc.enums.SpeechCapabilities;
 import com.smartdevicelink.proxy.rpc.enums.SmartDeviceLinkConnectionState;
 import com.smartdevicelink.proxy.rpc.enums.SmartDeviceLinkDisconnectedReason;
@@ -93,12 +54,11 @@ import com.smartdevicelink.proxy.rpc.enums.SystemContext;
 import com.smartdevicelink.proxy.rpc.enums.TextAlignment;
 import com.smartdevicelink.proxy.rpc.enums.UpdateMode;
 import com.smartdevicelink.proxy.rpc.enums.VrCapabilities;
-import com.smartdevicelink.syncConnection.ISmartDeviceLinkConnectionListener;
-import com.smartdevicelink.syncConnection.SmartDeviceLinkConnection;
+import com.smartdevicelink.smartDeviceLinkConnection.IsmartDeviceLinkConnectionListener;
+import com.smartdevicelink.smartDeviceLinkConnection.smartDeviceLinkConnection;
+import com.smartdevicelink.trace.SmartDeviceLinkTrace;
 import com.smartdevicelink.trace.TraceDeviceInfo;
-import com.smartdevicelink.trace.SyncTrace;
 import com.smartdevicelink.trace.enums.InterfaceActivityDirection;
-import com.smartdevicelink.transport.BTTransportConfig;
 import com.smartdevicelink.transport.BaseTransportConfig;
 import com.smartdevicelink.transport.SiphonServer;
 import com.smartdevicelink.transport.TransportType;
@@ -108,12 +68,17 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	// Used for calls to Android Log class.
 	public static final String TAG = "SmartDeviceLinkProxy";
 	private static final String SMARTDEVICELINK_LIB_TRACE_KEY = "42baba60-eb57-11df-98cf-0800200c9a66";
-	private SmartDeviceLinkConnection _SmartDeviceLinkConnection;
+	private static final int PROX_PROT_VER_ONE = 1;
+	
+	private smartDeviceLinkConnection _smartDeviceLinkConnection;
 	private proxyListenerType _proxyListener = null;
+	
+	protected Service _appService = null;
 	
 	// Protected Correlation IDs
 	private final int 	REGISTER_APP_INTERFACE_CORRELATION_ID = 65529,
-						UNREGISTER_APP_INTERFACE_CORRELATION_ID = 65530;
+						UNREGISTER_APP_INTERFACE_CORRELATION_ID = 65530,
+						POLICIES_CORRELATION_ID = 65535;
 	
 	// SmartDeviceLinkhronization Objects
 	private static final Object CONNECTION_REFERENCE_LOCK = new Object(),
@@ -121,10 +86,12 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 								OUTGOING_MESSAGE_QUEUE_THREAD_LOCK = new Object(),
 								INTERNAL_MESSAGE_QUEUE_THREAD_LOCK = new Object(),
 								APP_INTERFACE_REGISTERED_LOCK = new Object();
-	
+		
 	// RPC Session ID
 	private byte _rpcSessionID = 0;
 	
+	private int iFileCount = 0;
+
 	// Device Info for logging
 	private TraceDeviceInfo _traceDeviceInterrogator = null;
 		
@@ -142,44 +109,58 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	protected Boolean _advancedLifecycleManagementEnabled = false;
 	// Parameters passed to the constructor from the app to register an app interface
 	private String _applicationName = null;
+	private Vector<TTSChunk> _ttsName = null;
 	private String _ngnMediaScreenAppName = null;
 	private Boolean _isMediaApp = null;
-	private Language _SmartDeviceLinkLanguageDesired = null;
+	private Language _smartDeviceLinkLanguageDesired = null;
+	private Language _hmiDisplayLanguageDesired = null;
+	private Vector<AppHMIType> _appType = null;
+	private String _appID = null;
 	private String _autoActivateIdDesired = null;
-	private SyncMsgVersion _SyncMsgVersionRequest = null;
+	private smartdevicelinkMsgVersion _smartDeviceLinkMsgVersionRequest = null;
 	private Vector<String> _vrSynonyms = null;
-
+	
+	/**
+	 * Contains current configuration for the transport that was selected during 
+	 * construction of this object
+	 */
 	private BaseTransportConfig _transportConfig = null;
 	// Proxy State Variables
 	protected Boolean _appInterfaceRegisterd = false;
+	private Boolean _haveReceivedFirstNonNoneHMILevel = false;
 	protected Boolean _haveReceivedFirstFocusLevel = false;
 	protected Boolean _haveReceivedFirstFocusLevelFull = false;
 	protected Boolean _proxyDisposed = false;
-	protected SmartDeviceLinkConnectionState _SmartDeviceLinkConnectionState = null;
-	protected SmartDeviceLinkInterfaceAvailability _SmartDeviceLinkIntefaceAvailablity = null;
+	protected SmartDeviceLinkConnectionState _smartDeviceLinkConnectionState = null;
+	protected SmartDeviceLinkInterfaceAvailability _smartDeviceLinkIntefaceAvailablity = null;
 	protected HMILevel _hmiLevel = null;
 	private HMILevel _priorHmiLevel = null;
 	protected AudioStreamingState _audioStreamingState = null;
 	private AudioStreamingState _priorAudioStreamingState = null;
 	protected SystemContext _systemContext = null;
 	// Variables set by RegisterAppInterfaceResponse
-	protected SyncMsgVersion _SyncMsgVersion = null;
+	protected smartdevicelinkMsgVersion _smartDeviceLinkMsgVersion = null;
 	protected String _autoActivateIdReturned = null;
-	protected Language _SmartDeviceLinkLanguage = null;
+	protected Language _smartDeviceLinkLanguage = null;
+	protected Language _hmiDisplayLanguage = null;
 	protected DisplayCapabilities _displayCapabilities = null;
 	protected Vector<ButtonCapabilities> _buttonCapabilities = null;
+	protected Vector<SoftButtonCapabilities> _softButtonCapabilities = null;
+	protected PresetBankCapabilities _presetBankCapabilities = null;
 	protected Vector<HmiZoneCapabilities> _hmiZoneCapabilities = null;
 	protected Vector<SpeechCapabilities> _speechCapabilities = null;
 	protected Vector<VrCapabilities> _vrCapabilities = null;
+	protected VehicleType _vehicleType = null;
 	protected Boolean firstTimeFull = true;
+	protected String _proxyVersionInfo = null;
 	
-	protected byte _protocolVersion = 1;
+	protected byte _sdlproVersion = 1;
 	
 	// Interface broker
 	private SmartDeviceLinkInterfaceBroker _interfaceBroker = null;
 	
-	// Private Class to Interface with SmartDeviceLinkConnection
-	private class SmartDeviceLinkInterfaceBroker implements ISmartDeviceLinkConnectionListener {
+	// Private Class to Interface with smartDeviceLinkConnection
+	private class SmartDeviceLinkInterfaceBroker implements IsmartDeviceLinkConnectionListener {
 		
 		@Override
 		public void onTransportDisconnected(String info) {
@@ -208,6 +189,7 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 
 		@Override
 		public void onProtocolMessageReceived(ProtocolMessage msg) {
+			
 			try {if (msg.getData().length > 0) queueIncomingMessage(msg);}
 			catch (Exception e) {}
 			try {if (msg.getBulkData().length > 0) queueIncomingMessage(msg);}
@@ -217,12 +199,12 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 		@Override
 		public void onProtocolSessionStarted(SessionType sessionType,
 				byte sessionID, byte version, String correlationID) {
-			if (_protocolVersion == 1) {
-				if (version == 2) setProtocolVersion(version);
+			if (_sdlproVersion == 1) {
+				if (version == 2) setsdlproVersion(version);
 			}
 			if (sessionType.eq(SessionType.RPC)) {			
 				startRPCProtocolSession(sessionID, correlationID);
-			} else if (_protocolVersion == 2) {
+			} else if (_sdlproVersion == 2) {
 				//If version 2 then don't need to specify a Session Type
 				startRPCProtocolSession(sessionID, correlationID);
 			}  else {
@@ -242,13 +224,36 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 			passErrorToProxyListener(info, e);
 		}
 	}
-
-	protected SmartDeviceLinkProxyBase(proxyListenerType listener, SmartDeviceLinkProxyConfigurationResources SmartDeviceLinkProxyConfigurationResources, 
-			boolean enableAdvancedLifecycleManagement, String appName, String ngnMediaScreenAppName, 
-			Vector<String> vrSynonyms, Boolean isMediaApp, SyncMsgVersion SyncMsgVersion, 
-			Language languageDesired, String autoActivateID, boolean callbackToUIThread,
-			BaseTransportConfig transportConfig) 
+	
+	/**
+	 * Constructor.
+	 * 
+	 * @param listener Type of listener for this proxy base.
+	 * @param smartDeviceLinkProxyConfigurationResources Configuration resources for this proxy.
+	 * @param enableAdvancedLifecycleManagement Flag that ALM should be enabled or not.
+	 * @param appName Client application name.
+	 * @param ttsName TTS name.
+	 * @param ngnMediaScreenAppName Media Screen Application name.
+	 * @param vrSynonyms List of synonyms.
+	 * @param isMediaApp Flag that indicates that client application if media application or not.
+	 * @param smartDeviceLinkMsgVersion Version of SmartDeviceLink Message.
+	 * @param languageDesired Desired language.
+	 * @param hmiDisplayLanguageDesired Desired language for HMI. 
+	 * @param appType Type of application.
+	 * @param appID Application identifier.
+	 * @param autoActivateID Auto activation identifier.
+	 * @param callbackToUIThread Flag that indicates that this proxy should send callback to UI thread or not.
+	 * @param transportConfig Configuration of transport to be used by underlying connection.
+	 * @throws SmartDeviceLinkException
+	 */
+	protected SmartDeviceLinkProxyBase(proxyListenerType listener, SmartDeviceLinkProxyConfigurationResources smartDeviceLinkProxyConfigurationResources, 
+			boolean enableAdvancedLifecycleManagement, String appName, Vector<TTSChunk> ttsName, 
+			String ngnMediaScreenAppName, Vector<String> vrSynonyms, Boolean isMediaApp, smartdevicelinkMsgVersion smartDeviceLinkMsgVersion, 
+			Language languageDesired, Language hmiDisplayLanguageDesired, Vector<AppHMIType> appType, String appID, 
+			String autoActivateID, boolean callbackToUIThread, BaseTransportConfig transportConfig) 
 			throws SmartDeviceLinkException {
+		
+		setsdlproVersion((byte)PROX_PROT_VER_ONE);
 		
 		_interfaceBroker = new SmartDeviceLinkInterfaceBroker();
 		
@@ -261,11 +266,15 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 		// Set variables for Advanced Lifecycle Management
 		_advancedLifecycleManagementEnabled = enableAdvancedLifecycleManagement;
 		_applicationName = appName;
+		_ttsName = ttsName;
 		_ngnMediaScreenAppName = ngnMediaScreenAppName;
 		_isMediaApp = isMediaApp;
-		_SyncMsgVersionRequest = SyncMsgVersion;
+		_smartDeviceLinkMsgVersionRequest = smartDeviceLinkMsgVersion;
 		_vrSynonyms = vrSynonyms; 
-		_SmartDeviceLinkLanguageDesired = languageDesired;
+		_smartDeviceLinkLanguageDesired = languageDesired;
+		_hmiDisplayLanguageDesired = hmiDisplayLanguageDesired;
+		_appType = appType;
+		_appID = appID;
 		_autoActivateIdDesired = autoActivateID;
 		_transportConfig = transportConfig;
 		
@@ -287,10 +296,10 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 		
 		_proxyListener = listener;
 		
-		// Get information from SmartDeviceLinkProxyConfigurationResources
+		// Get information from smartDeviceLinkProxyConfigurationResources
 		TelephonyManager telephonyManager = null;
-		if (SmartDeviceLinkProxyConfigurationResources != null) {
-			telephonyManager = SmartDeviceLinkProxyConfigurationResources.getTelephonyManager();
+		if (smartDeviceLinkProxyConfigurationResources != null) {
+			telephonyManager = smartDeviceLinkProxyConfigurationResources.getTelephonyManager();
 		} 
 		
 		// Use the telephonyManager to get and log phone info
@@ -299,7 +308,7 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 			// so we need to fix this, but vulnerability (i.e. two instances of listener) is
 			// likely harmless.
 			if (_traceDeviceInterrogator == null) {
-				_traceDeviceInterrogator = new TraceDeviceInfo(SmartDeviceLinkProxyConfigurationResources.getTelephonyManager());
+				_traceDeviceInterrogator = new TraceDeviceInfo(smartDeviceLinkProxyConfigurationResources.getTelephonyManager());
 			} // end-if
 		} // end-if
 		
@@ -411,14 +420,42 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 		} 
 		
 		// Trace that ctor has fired
-		SyncTrace.logProxyEvent("SmartDeviceLinkProxy Created, instanceID=" + this.toString(), SMARTDEVICELINK_LIB_TRACE_KEY);
+		SmartDeviceLinkTrace.logProxyEvent("SmartDeviceLinkProxy Created, instanceID=" + this.toString(), SMARTDEVICELINK_LIB_TRACE_KEY);
 	}
 	
-	protected SmartDeviceLinkProxyBase(proxyListenerType listener, SmartDeviceLinkProxyConfigurationResources SmartDeviceLinkProxyConfigurationResources, 
-			boolean enableAdvancedLifecycleManagement, String appName, String ngnMediaScreenAppName, 
-			Vector<String> vrSynonyms, Boolean isMediaApp, SyncMsgVersion SyncMsgVersion, 
-			Language languageDesired, String autoActivateID, boolean callbackToUIThread) 
+	/**
+	 * Constructor.
+	 * 
+	 * @param listener Type of listener for this proxy base.
+	 * @param smartDeviceLinkProxyConfigurationResources Configuration resources for this proxy.
+	 * @param enableAdvancedLifecycleManagement Flag that ALM should be enabled or not.
+	 * @param appName Client application name.
+	 * @param ttsName TTS name.
+	 * @param ngnMediaScreenAppName Media Screen Application name.
+	 * @param vrSynonyms List of synonyms.
+	 * @param isMediaApp Flag that indicates that client application if media application or not.
+	 * @param smartDeviceLinkMsgVersion Version of SmartDeviceLink Message.
+	 * @param languageDesired Desired language.
+	 * @param hmiDisplayLanguageDesired Desired language for HMI. 
+	 * @param appType Type of application.
+	 * @param appID Application identifier.
+	 * @param autoActivateID Auto activation identifier.
+	 * @param callbackToUIThread Flag that indicates that this proxy should send callback to UI thread or not.
+	 * @param preRegister Flag that indicates that this proxy should be pre-registerd or not.
+	 * @param transportConfig Configuration of transport to be used by underlying connection.
+	 * @throws SmartDeviceLinkException
+	 */	
+	protected SmartDeviceLinkProxyBase(proxyListenerType listener, SmartDeviceLinkProxyConfigurationResources smartDeviceLinkProxyConfigurationResources, 
+			boolean enableAdvancedLifecycleManagement, String appName, Vector<TTSChunk> ttsName, 
+			String ngnMediaScreenAppName, Vector<String> vrSynonyms, Boolean isMediaApp, smartdevicelinkMsgVersion smartDeviceLinkMsgVersion, 
+			Language languageDesired, Language hmiDisplayLanguageDesired, Vector<AppHMIType> appType, String appID, 
+			String autoActivateID, boolean callbackToUIThread, boolean preRegister,
+			BaseTransportConfig transportConfig) 
 			throws SmartDeviceLinkException {
+		
+		setsdlproVersion((byte)PROX_PROT_VER_ONE);
+		
+		if (preRegister) _appInterfaceRegisterd = preRegister;
 		
 		_interfaceBroker = new SmartDeviceLinkInterfaceBroker();
 		
@@ -431,13 +468,17 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 		// Set variables for Advanced Lifecycle Management
 		_advancedLifecycleManagementEnabled = enableAdvancedLifecycleManagement;
 		_applicationName = appName;
+		_ttsName = ttsName;
 		_ngnMediaScreenAppName = ngnMediaScreenAppName;
 		_isMediaApp = isMediaApp;
-		_SyncMsgVersionRequest = SyncMsgVersion;
+		_smartDeviceLinkMsgVersionRequest = smartDeviceLinkMsgVersion;
 		_vrSynonyms = vrSynonyms; 
-		_SmartDeviceLinkLanguageDesired = languageDesired;
+		_smartDeviceLinkLanguageDesired = languageDesired;
+		_hmiDisplayLanguageDesired = hmiDisplayLanguageDesired;
+		_appType = appType;
+		_appID = appID;
 		_autoActivateIdDesired = autoActivateID;
-		_transportConfig = new BTTransportConfig();
+		_transportConfig = transportConfig;
 		
 		// Test conditions to invalidate the proxy
 		if (listener == null) {
@@ -457,10 +498,10 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 		
 		_proxyListener = listener;
 		
-		// Get information from SmartDeviceLinkProxyConfigurationResources
+		// Get information from smartDeviceLinkProxyConfigurationResources
 		TelephonyManager telephonyManager = null;
-		if (SmartDeviceLinkProxyConfigurationResources != null) {
-			telephonyManager = SmartDeviceLinkProxyConfigurationResources.getTelephonyManager();
+		if (smartDeviceLinkProxyConfigurationResources != null) {
+			telephonyManager = smartDeviceLinkProxyConfigurationResources.getTelephonyManager();
 		} 
 		
 		// Use the telephonyManager to get and log phone info
@@ -469,7 +510,7 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 			// so we need to fix this, but vulnerability (i.e. two instances of listener) is
 			// likely harmless.
 			if (_traceDeviceInterrogator == null) {
-				_traceDeviceInterrogator = new TraceDeviceInfo(SmartDeviceLinkProxyConfigurationResources.getTelephonyManager());
+				_traceDeviceInterrogator = new TraceDeviceInfo(smartDeviceLinkProxyConfigurationResources.getTelephonyManager());
 			} // end-if
 		} // end-if
 		
@@ -581,14 +622,92 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 		} 
 		
 		// Trace that ctor has fired
-		SyncTrace.logProxyEvent("SmartDeviceLinkProxy Created, instanceID=" + this.toString(), SMARTDEVICELINK_LIB_TRACE_KEY);
+		SmartDeviceLinkTrace.logProxyEvent("SmartDeviceLinkProxy Created, instanceID=" + this.toString(), SMARTDEVICELINK_LIB_TRACE_KEY);
+	}
+
+	private Intent createBroadcastIntent()
+	{
+		Intent sendIntent = new Intent();
+		sendIntent.setAction("com.smartdevicelink.broadcast");
+		sendIntent.putExtra("APP_NAME", this._applicationName);
+		sendIntent.putExtra("APP_ID", this._appID);
+		sendIntent.putExtra("RPC_NAME", "");
+		sendIntent.putExtra("TYPE", "");
+		sendIntent.putExtra("SUCCESS", true);
+		sendIntent.putExtra("CORRID", 0);
+		sendIntent.putExtra("FUNCTION_NAME", "");
+		sendIntent.putExtra("COMMENT1", "");
+		sendIntent.putExtra("COMMENT2", "");
+		sendIntent.putExtra("COMMENT3", "");
+		sendIntent.putExtra("COMMENT4", "");
+		sendIntent.putExtra("COMMENT5", "");
+		sendIntent.putExtra("COMMENT6", "");
+		sendIntent.putExtra("COMMENT7", "");
+		sendIntent.putExtra("COMMENT8", "");
+		sendIntent.putExtra("COMMENT9", "");
+		sendIntent.putExtra("COMMENT10", "");
+		sendIntent.putExtra("DATA", "");
+		sendIntent.putExtra("SHOW_ON_UI", true);
+		return sendIntent;
+	}
+	private void updateBroadcastIntent(Intent sendIntent, String sKey, String sValue)
+	{
+		sendIntent.putExtra(sKey, sValue);		
+	}
+	private void updateBroadcastIntent(Intent sendIntent, String sKey, boolean bValue)
+	{
+		sendIntent.putExtra(sKey, bValue);		
+	}
+	private void updateBroadcastIntent(Intent sendIntent, String sKey, int iValue)
+	{
+		sendIntent.putExtra(sKey, iValue);		
+	}
+	
+	private void sendBroadcastIntent(Intent sendIntent)
+	{
+		Service myService = null;		
+		if (_proxyListener != null && _proxyListener instanceof Service)
+		{
+			myService = (Service) _proxyListener;				
+		}
+		else if (_appService != null)
+		{
+			myService = _appService;
+		}
+		else
+		{
+			return;
+		}		
+		Context myContext = myService.getApplicationContext();				
+		if (myContext != null) myContext.sendBroadcast(sendIntent);		
+	}
+
+	/**
+	 * send encoded SmartDeviceLink data to Url
+	 * @param urlString
+	 * @param encodedSyncPData
+	 * @param timeout
+	 */
+	private void sendEncodedSyncPDataToUrl(String urlString, Vector<String> encodedSyncPData, Integer timeout) {		
+		
+	}
+
+	/**
+	 * send encoded SmartDeviceLink data to Url
+	 * @param urlString
+	 * @param bs
+	 * @param timeout
+	 */
+	private void sendSyncPDataToUrl(String urlString, byte[] bs, Integer timeout) {
+
 	}
 
 	// Test correlationID
 	private boolean isCorrelationIDProtected(Integer correlationID) {
 		if (correlationID != null && 
 				(REGISTER_APP_INTERFACE_CORRELATION_ID == correlationID
-						|| UNREGISTER_APP_INTERFACE_CORRELATION_ID == correlationID)) {
+						|| UNREGISTER_APP_INTERFACE_CORRELATION_ID == correlationID
+						|| POLICIES_CORRELATION_ID == correlationID)) {
 			return true;
 		}
 		
@@ -597,53 +716,82 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	
 	// Protected isConnected method to allow legacy proxy to poll isConnected state
 	public Boolean getIsConnected() {
-		return _SmartDeviceLinkConnection.getIsConnected();
+		return _smartDeviceLinkConnection.getIsConnected();
 	}
 	
-	
+	/**
+	 * Returns whether the application is registered in SMARTDEVICELINK. Note: for testing
+	 * purposes, it's possible that the connection is established, but the
+	 * application is not registered.
+	 * 
+	 * @return true if the application is registered in SMARTDEVICELINK
+	 */
+	public Boolean getAppInterfaceRegistered() {
+		return _appInterfaceRegisterd;
+	}
+
 	// Function to initialize new proxy connection
 	private void initializeProxy() throws SmartDeviceLinkException {		
 		// Reset all of the flags and state variables
+		_haveReceivedFirstNonNoneHMILevel = false;
 		_haveReceivedFirstFocusLevel = false;
 		_haveReceivedFirstFocusLevelFull = false;
-		_SmartDeviceLinkIntefaceAvailablity = SmartDeviceLinkInterfaceAvailability.SMARTDEVICELINK_INTERFACE_UNAVAILABLE;
-		
-		// Setup SmartDeviceLinkConnection
+		_smartDeviceLinkIntefaceAvailablity = SmartDeviceLinkInterfaceAvailability.SMARTDEVICELINK_INTERFACE_UNAVAILABLE;
+				
+		// Setup smartDeviceLinkConnection
 		synchronized(CONNECTION_REFERENCE_LOCK) {
-			if (_SmartDeviceLinkConnection != null) {
-				_SmartDeviceLinkConnection.closeConnection(_rpcSessionID);
-				_SmartDeviceLinkConnection = null;
+			if (_smartDeviceLinkConnection != null) {
+				_smartDeviceLinkConnection.closeConnection(_rpcSessionID);
+				_smartDeviceLinkConnection = null;
 			}
-			_SmartDeviceLinkConnection = new SmartDeviceLinkConnection(_interfaceBroker, _transportConfig);
+			_smartDeviceLinkConnection = new smartDeviceLinkConnection(_interfaceBroker, _transportConfig);
+			SmartDeviceLinkProtocol protocol = (SmartDeviceLinkProtocol)_smartDeviceLinkConnection.getSmartDeviceLinkProtocolProtocol();
+			protocol.setVersion(_sdlproVersion);
 		}
 		
 		synchronized(CONNECTION_REFERENCE_LOCK) {
-			if (_SmartDeviceLinkConnection != null) {
-				_SmartDeviceLinkConnection.startTransport();
+			if (_smartDeviceLinkConnection != null) {
+				_smartDeviceLinkConnection.startTransport();
 			}
 		}
 	}
 	
-	// Public method to enable the siphon transport
+	/**
+	 *  Public method to enable the siphon transport
+	 */
 	public static void enableSiphonDebug() {
 		SiphonServer.enableSiphonServer();
 	}
 	
-	// Public method to disable the Siphon Trace Server
+	/**
+	 *  Public method to disable the Siphon Trace Server
+	 */
 	public static void disableSiphonDebug() {
 		SiphonServer.disableSiphonServer();
 	}	
 	
-	// Public method to enable the Debug Tool
+	/**
+	 *  Public method to enable the Debug Tool
+	 */
 	public static void enableDebugTool() {
 		DebugTool.enableDebugTool();
 	}
 	
-	// Public method to disable the Debug Tool
+	/**
+	 *  Public method to disable the Debug Tool
+	 */
 	public static void disableDebugTool() {
 		DebugTool.disableDebugTool();
 	}	
 
+	/**
+	* Public method to determine Debug Tool enabled
+	*/
+	public static boolean isDebugEnabled() {
+		return DebugTool.isDebugEnabled();
+	}	
+	
+	
 	@Deprecated
 	public void close() throws SmartDeviceLinkException {
 		dispose();
@@ -654,7 +802,7 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 			
 			// ALM Specific Cleanup
 			if (_advancedLifecycleManagementEnabled) {
-				_SmartDeviceLinkConnectionState = SmartDeviceLinkConnectionState.SMARTDEVICELINK_DISCONNECTED;
+				_smartDeviceLinkConnectionState = SmartDeviceLinkConnectionState.SMARTDEVICELINK_DISCONNECTED;
 				
 				firstTimeFull = true;
 			
@@ -662,7 +810,7 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 				Boolean waitForInterfaceUnregistered = false;
 				// Unregister app interface
 				synchronized(CONNECTION_REFERENCE_LOCK) {
-					if (_appInterfaceRegisterd == true && _SmartDeviceLinkConnection != null && _SmartDeviceLinkConnection.getIsConnected()) {
+					if (_appInterfaceRegisterd == true && _smartDeviceLinkConnection != null && _smartDeviceLinkConnection.getIsConnected()) {
 						waitForInterfaceUnregistered = true;
 						unregisterAppInterfacePrivate(UNREGISTER_APP_INTERFACE_CORRELATION_ID);
 					}
@@ -680,17 +828,17 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 				}
 			}
 			
-			// Clean up SmartDeviceLink Connection
+			// Clean up SMARTDEVICELINK Connection
 			synchronized(CONNECTION_REFERENCE_LOCK) {
-				if (_SmartDeviceLinkConnection != null) {
-					_SmartDeviceLinkConnection.closeConnection(_rpcSessionID);
-					_SmartDeviceLinkConnection = null;
+				if (_smartDeviceLinkConnection != null) {
+					_smartDeviceLinkConnection.closeConnection(_rpcSessionID);
+					_smartDeviceLinkConnection = null;
 				}
-			}
+			}		
 		} catch (SmartDeviceLinkException e) {
 			throw e;
 		} finally {
-			SyncTrace.logProxyEvent("SmartDeviceLinkProxy cleaned.", SMARTDEVICELINK_LIB_TRACE_KEY);
+			SmartDeviceLinkTrace.logProxyEvent("SmartDeviceLinkProxy cleaned.", SMARTDEVICELINK_LIB_TRACE_KEY);
 		}
 	}
 	
@@ -705,7 +853,7 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 		
 		_proxyDisposed = true;
 		
-		SyncTrace.logProxyEvent("Application called dispose() method.", SMARTDEVICELINK_LIB_TRACE_KEY);
+		SmartDeviceLinkTrace.logProxyEvent("Application called dispose() method.", SMARTDEVICELINK_LIB_TRACE_KEY);
 		
 		try{
 			// Clean the proxy
@@ -739,7 +887,7 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 		} catch (SmartDeviceLinkException e) {
 			throw e;
 		} finally {
-			SyncTrace.logProxyEvent("SmartDeviceLinkProxy disposed.", SMARTDEVICELINK_LIB_TRACE_KEY);
+			SmartDeviceLinkTrace.logProxyEvent("SmartDeviceLinkProxy disposed.", SMARTDEVICELINK_LIB_TRACE_KEY);
 		}
 	} // end-method
 
@@ -748,16 +896,16 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 		try{
 			cleanProxy(disconnectedReason);
 			initializeProxy();	
-			notifyProxyClosed("SmartDeviceLink Proxy Cycled", new SmartDeviceLinkException("SmartDeviceLink Proxy Cycled", SmartDeviceLinkExceptionCause.SMARTDEVICELINK_PROXY_CYCLED));
+			notifyProxyClosed("SMARTDEVICELINK Proxy Cycled", new SmartDeviceLinkException("SMARTDEVICELINK Proxy Cycled", SmartDeviceLinkExceptionCause.SMARTDEVICELINK_PROXY_CYCLED));
 		} catch (SmartDeviceLinkException e) {
 			switch(e.getSmartDeviceLinkExceptionCause()) {
 			case BLUETOOTH_DISABLED:
-				notifyProxyClosed("Bluetooth is disabled. Bluetooth must be enabled to connect to SmartDeviceLink. Reattempt a connection once Bluetooth is enabled.", 
-						new SmartDeviceLinkException("Bluetooth is disabled. Bluetooth must be enabled to connect to SmartDeviceLink. Reattempt a connection once Bluetooth is enabled.", SmartDeviceLinkExceptionCause.BLUETOOTH_DISABLED));
+				notifyProxyClosed("Bluetooth is disabled. Bluetooth must be enabled to connect to SMARTDEVICELINK. Reattempt a connection once Bluetooth is enabled.", 
+						new SmartDeviceLinkException("Bluetooth is disabled. Bluetooth must be enabled to connect to SMARTDEVICELINK. Reattempt a connection once Bluetooth is enabled.", SmartDeviceLinkExceptionCause.BLUETOOTH_DISABLED));
 				break;
 			case BLUETOOTH_ADAPTER_NULL:
-				notifyProxyClosed("Cannot locate a Bluetooth adapater. A SmartDeviceLink connection is impossible on this device until a Bluetooth adapter is added.", 
-						new SmartDeviceLinkException("Cannot locate a Bluetooth adapater. A SmartDeviceLink connection is impossible on this device until a Bluetooth adapter is added.", SmartDeviceLinkExceptionCause.HEARTBEAT_PAST_DUE));
+				notifyProxyClosed("Cannot locate a Bluetooth adapater. A SMARTDEVICELINK connection is impossible on this device until a Bluetooth adapter is added.", 
+						new SmartDeviceLinkException("Cannot locate a Bluetooth adapater. A SMARTDEVICELINK connection is impossible on this device until a Bluetooth adapter is added.", SmartDeviceLinkExceptionCause.BLUETOOTH_ADAPTER_NULL));
 				break;
 			default :
 				notifyProxyClosed("Cycling the proxy failed.", e);
@@ -776,16 +924,17 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 			// Dispatching logic
 			if (message.getSessionType().equals(SessionType.RPC)) {
 				try {
-					if (_protocolVersion == 1) {
-						if (message.getVersion() == 2) setProtocolVersion(message.getVersion());
+					if (_sdlproVersion == 1) {
+						if (message.getVersion() == 2) setsdlproVersion(message.getVersion());
 					}
 					
 					Hashtable hash = new Hashtable();
-					if (_protocolVersion == 2) {
+					if (_sdlproVersion == 2) {
 						Hashtable hashTemp = new Hashtable();
 						hashTemp.put(Names.correlationID, message.getCorrID());
 						if (message.getJsonSize() > 0) {
 							final Hashtable<String, Object> mhash = JsonRPCMarshaller.unmarshall(message.getData());
+							//hashTemp.put(Names.parameters, mhash.get(Names.parameters));
 							hashTemp.put(Names.parameters, mhash);
 						}
 						FunctionID functionID = new FunctionID();
@@ -817,8 +966,28 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 		}
 	}
 	
-	private void setProtocolVersion(byte version) {
-		this._protocolVersion = version;
+	private byte getsdlproVersion() {
+		return this._sdlproVersion;
+	}
+	
+	private void setsdlproVersion(byte version) {
+		this._sdlproVersion = version;
+	}
+	
+	public String serializeJSON(RPCMessage msg)
+	{
+		String sReturn = null;		
+		try
+		{
+			sReturn = msg.serializeJSON(getsdlproVersion()).toString(2);
+		}
+		catch (final Exception e) 
+		{
+			DebugTool.logError("Error handing proxy event.", e);
+			passErrorToProxyListener("Error serializing message.", e);
+			return null;
+		}
+		return sReturn;
 	}
 
 	private void handleErrorsFromIncomingMessageDispatcher(String info, Exception e) {
@@ -827,11 +996,11 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	
 	private void dispatchOutgoingMessage(ProtocolMessage message) {
 		synchronized(CONNECTION_REFERENCE_LOCK) {
-			if (_SmartDeviceLinkConnection != null) {
-				_SmartDeviceLinkConnection.sendMessage(message);
+			if (_smartDeviceLinkConnection != null) {
+				_smartDeviceLinkConnection.sendMessage(message);
 			}
 		}		
-		SyncTrace.logProxyEvent("SmartDeviceLinkProxy sending Protocol Message: " + message.toString(), SMARTDEVICELINK_LIB_TRACE_KEY);
+		SmartDeviceLinkTrace.logProxyEvent("SmartDeviceLinkProxy sending Protocol Message: " + message.toString(), SMARTDEVICELINK_LIB_TRACE_KEY);
 	}
 	
 	private void handleErrorsFromOutgoingMessageDispatcher(String info, Exception e) {
@@ -882,11 +1051,11 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 			/****************End Legacy Specific Call-backs************/
 			} else {
 				// Diagnostics
-				SyncTrace.logProxyEvent("Unknown RPC Message encountered. Check for an updated version of the SmartDeviceLink Proxy.", SMARTDEVICELINK_LIB_TRACE_KEY);
-				DebugTool.logError("Unknown RPC Message encountered. Check for an updated version of the SmartDeviceLink Proxy.");
+				SmartDeviceLinkTrace.logProxyEvent("Unknown RPC Message encountered. Check for an updated version of the SMARTDEVICELINK Proxy.", SMARTDEVICELINK_LIB_TRACE_KEY);
+				DebugTool.logError("Unknown RPC Message encountered. Check for an updated version of the SMARTDEVICELINK Proxy.");
 			}
 			
-		SyncTrace.logProxyEvent("Proxy fired callback: " + message.getFunctionName(), SMARTDEVICELINK_LIB_TRACE_KEY);
+		SmartDeviceLinkTrace.logProxyEvent("Proxy fired callback: " + message.getFunctionName(), SMARTDEVICELINK_LIB_TRACE_KEY);
 		} catch(final Exception e) {
 			// Pass error to application through listener 
 			DebugTool.logError("Error handing proxy event.", e);
@@ -911,7 +1080,7 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 		
 		DebugTool.logError("InternalMessageDispatcher failed.", e);
 		
-		// Note, this is the only place where the _proxyListener should be referenced aSmartDeviceLinkhronously,
+		// Note, this is the only place where the _proxyListener should be referenced asmartDeviceLinkhronously,
 		// with an error on the internalMessageDispatcher, we have no other reliable way of 
 		// communicating with the application.
 		notifyProxyClosed("Proxy callback dispatcher is down. Proxy instance is invalid.", e);
@@ -919,28 +1088,33 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	}
 	/************* END Functions used by the Message Dispatching Queues ****************/
 	
-
 	// Private sendPRCRequest method. All RPCRequests are funneled through this method after
 		// error checking. 
 	private void sendRPCRequestPrivate(RPCRequest request) throws SmartDeviceLinkException {
-		SyncTrace.logRPCEvent(InterfaceActivityDirection.Transmit, request, SMARTDEVICELINK_LIB_TRACE_KEY);
-		
-		byte[] msgBytes = JsonRPCMarshaller.marshall(request, _protocolVersion);
-		
-		ProtocolMessage pm = new ProtocolMessage();
-		pm.setData(msgBytes);
-		pm.setSessionID(_rpcSessionID);
-		pm.setMessageType(MessageType.RPC);
-		pm.setSessionType(SessionType.RPC);
-		FunctionID functionID = new FunctionID();
-		pm.setFunctionID(functionID.getFunctionID(request.getFunctionName()));
-		pm.setCorrID(request.getCorrelationID());
-		
-		// Queue this outgoing message
-		synchronized(OUTGOING_MESSAGE_QUEUE_THREAD_LOCK) {
-			if (_outgoingProxyMessageDispatcher != null) {
-				_outgoingProxyMessageDispatcher.queueMessage(pm);
+			try {
+			SmartDeviceLinkTrace.logRPCEvent(InterfaceActivityDirection.Transmit, request, SMARTDEVICELINK_LIB_TRACE_KEY);
+						
+			byte[] msgBytes = JsonRPCMarshaller.marshall(request, _sdlproVersion);
+	
+			ProtocolMessage pm = new ProtocolMessage();
+			pm.setData(msgBytes);
+			pm.setSessionID(_rpcSessionID);
+			pm.setMessageType(MessageType.RPC);
+			pm.setSessionType(SessionType.RPC);
+			pm.setFunctionID(FunctionID.getFunctionID(request.getFunctionName()));
+			pm.setCorrID(request.getCorrelationID());
+			if (request.getBulkData() != null) 
+				pm.setBulkData(request.getBulkData());
+			
+			// Queue this outgoing message
+			synchronized(OUTGOING_MESSAGE_QUEUE_THREAD_LOCK) {
+				if (_outgoingProxyMessageDispatcher != null) {
+					_outgoingProxyMessageDispatcher.queueMessage(pm);
+				}
 			}
+		} catch (OutOfMemoryError e) {
+			SmartDeviceLinkTrace.logProxyEvent("OutOfMemory exception while sending request " + request.getFunctionName(), SMARTDEVICELINK_LIB_TRACE_KEY);
+			throw new SmartDeviceLinkException("OutOfMemory exception while sending request " + request.getFunctionName(), e, SmartDeviceLinkExceptionCause.INVALID_ARGUMENT);
 		}
 	}
 	
@@ -950,7 +1124,7 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 		String messageType = rpcMsg.getMessageType();
 		
 		if (messageType.equals(Names.response)) {			
-			SyncTrace.logRPCEvent(InterfaceActivityDirection.Receive, new RPCResponse(rpcMsg), SMARTDEVICELINK_LIB_TRACE_KEY);
+			SmartDeviceLinkTrace.logRPCEvent(InterfaceActivityDirection.Receive, new RPCResponse(rpcMsg), SMARTDEVICELINK_LIB_TRACE_KEY);
 
 			// Check to ensure response is not from an internal message (reserved correlation ID)
 			if (isCorrelationIDProtected((new RPCResponse(hash)).getCorrelationID())) {
@@ -964,24 +1138,125 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 						_appInterfaceRegisterd = true;
 					}
 					
-					_autoActivateIdReturned = msg.getAutoActivateID();
+					//_autoActivateIdReturned = msg.getAutoActivateID();
+					/*Place holder for legacy support*/ _autoActivateIdReturned = "8675309";
 					_buttonCapabilities = msg.getButtonCapabilities();
 					_displayCapabilities = msg.getDisplayCapabilities();
+					_softButtonCapabilities = msg.getSoftButtonCapabilities();
+					_presetBankCapabilities = msg.getPresetBankCapabilities();
 					_hmiZoneCapabilities = msg.getHmiZoneCapabilities();
 					_speechCapabilities = msg.getSpeechCapabilities();
-					_SmartDeviceLinkLanguage = msg.getLanguage();
-					_SyncMsgVersion = msg.getSyncMsgVersion();
+					_smartDeviceLinkLanguage = msg.getLanguage();
+					_hmiDisplayLanguage = msg.getHmiDisplayLanguage();
+					_smartDeviceLinkMsgVersion = msg.getsmartdevicelinkMsgVersion();
 					_vrCapabilities = msg.getVrCapabilities();
+					_vehicleType = msg.getVehicleType();
+					_proxyVersionInfo = msg.getProxyVersionInfo();
+					
+					String sVersionInfo = "SMARTDEVICELINK Proxy Version: " + _proxyVersionInfo;
+					
+					Class<?> cls = null;
+					try 
+					{
+						cls = Class.forName(Names.VersionExtend);
+						Object t = cls.newInstance();						
+						Method meth = cls.getDeclaredMethod("getVersionInfo", null);															
+						final Object ver = meth.invoke(t, null);						
+						String sValue = ver.toString();					
+						sVersionInfo += "\r\n" + "ExtendedLib Version: " + sValue; 						
+					} 
+					catch (Exception e) 
+					{
+						//Extended info does not exist
+					}
+										
+					if (!isDebugEnabled()) 
+					{
+						enableDebugTool();
+						DebugTool.logInfo(sVersionInfo, false);
+						disableDebugTool();
+					}					
+					else
+						DebugTool.logInfo(sVersionInfo, false);
 					
 					// Send onSmartDeviceLinkConnected message in ALM
-					_SmartDeviceLinkConnectionState = SmartDeviceLinkConnectionState.SMARTDEVICELINK_CONNECTED;
+					_smartDeviceLinkConnectionState = SmartDeviceLinkConnectionState.SMARTDEVICELINK_CONNECTED;
 					
 					// If registerAppInterface failed, exit with OnProxyUnusable
 					if (!msg.getSuccess()) {
-						notifyProxyClosed("Unable to register app interface. Review values passed to the SmartDeviceLinkProxy constructor. RegisterAppInterface result code: ", 
+						notifyProxyClosed("Unable to register app interface. Review values passed to the SMARTDEVICELINK Proxy constructor. RegisterAppInterface result code: ", 
 								new SmartDeviceLinkException("Unable to register app interface. Review values passed to the SmartDeviceLinkProxy constructor. RegisterAppInterface result code: " + msg.getResultCode(), SmartDeviceLinkExceptionCause.SMARTDEVICELINK_REGISTRATION_ERROR));
 					}
+					
+					if (_callbackToUIThread) {
+						// Run in UI thread
+						_mainUIHandler.post(new Runnable() {
+							@Override
+							public void run() {
+								if (_proxyListener instanceof IProxyListener) {
+									((IProxyListener)_proxyListener).onRegisterAppInterfaceResponse(msg);
+								} else if (_proxyListener instanceof IProxyListenerALM) {
+									//((IProxyListenerALM)_proxyListener).onRegisterAppInterfaceResponse(msg);
+								}
+							}
+						});
+					} else {
+						if (_proxyListener instanceof IProxyListener) {
+							((IProxyListener)_proxyListener).onRegisterAppInterfaceResponse(msg);
+						} else if (_proxyListener instanceof IProxyListenerALM) {
+							//((IProxyListenerALM)_proxyListener).onRegisterAppInterfaceResponse(msg);
+						}
+					}
+				} else if ((new RPCResponse(hash)).getCorrelationID() == POLICIES_CORRELATION_ID 
+						&& functionName.equals(Names.OnEncodedSyncPData)) {
+					// OnEncodedSyncPData
+					final OnEncodedSyncPData msg = new OnEncodedSyncPData(hash);
+
+					// If url is not null, then send to URL
+					if (msg.getUrl() != null) {
+						// URL has data, attempt to post request to external server
+						Thread handleOffboardSmartDeviceLinkTransmissionTread = new Thread() {
+							@Override
+							public void run() {
+								sendEncodedSyncPDataToUrl(msg.getUrl(), msg.getData(), msg.getTimeout());
+							}
+						};
+
+						handleOffboardSmartDeviceLinkTransmissionTread.start();
+					} 
+					
+				} else if ((new RPCResponse(hash)).getCorrelationID() == POLICIES_CORRELATION_ID 
+						&& functionName.equals(Names.OnSyncPData)) {
+					// OnSyncPData
+					final OnSyncPData msg = new OnSyncPData(hash);
+
+					// If url is not null, then send to URL
+					if (msg.getUrl() != null) {
+						// URL has data, attempt to post request to external server
+						Thread handleOffboardSmartDeviceLinkTransmissionTread = new Thread() {
+							@Override
+							public void run() {
+								sendSyncPDataToUrl(msg.getUrl(), msg.getSyncPData(), msg.getTimeout());
+							}
+						};
+
+						handleOffboardSmartDeviceLinkTransmissionTread.start();
+					} 
 				}
+				else if ((new RPCResponse(hash)).getCorrelationID() == POLICIES_CORRELATION_ID 
+						&& functionName.equals(Names.EncodedSyncPData)) {
+					// EncodedSyncPData
+					final EncodedSyncPDataResponse msg = new EncodedSyncPDataResponse(hash);
+					
+					Intent sendIntent = createBroadcastIntent();
+					updateBroadcastIntent(sendIntent, "RPC_NAME", Names.EncodedSyncPData);
+					updateBroadcastIntent(sendIntent, "TYPE", Names.response);
+					updateBroadcastIntent(sendIntent, "SUCCESS", msg.getSuccess());
+					updateBroadcastIntent(sendIntent, "COMMENT1", msg.getInfo());
+					updateBroadcastIntent(sendIntent, "COMMENT2", msg.getResultCode().toString());
+					updateBroadcastIntent(sendIntent, "CORRID", msg.getCorrelationID());
+					sendBroadcastIntent(sendIntent);
+				}				
 				return;
 			}
 			
@@ -990,21 +1265,36 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 				if (msg.getSuccess()) {
 					_appInterfaceRegisterd = true;
 				}
-				
-				_autoActivateIdReturned = msg.getAutoActivateID();
+
+				//_autoActivateIdReturned = msg.getAutoActivateID();
+				/*Place holder for legacy support*/ _autoActivateIdReturned = "8675309";
 				_buttonCapabilities = msg.getButtonCapabilities();
 				_displayCapabilities = msg.getDisplayCapabilities();
+				_softButtonCapabilities = msg.getSoftButtonCapabilities();
+				_presetBankCapabilities = msg.getPresetBankCapabilities();
 				_hmiZoneCapabilities = msg.getHmiZoneCapabilities();
 				_speechCapabilities = msg.getSpeechCapabilities();
-				_SmartDeviceLinkLanguage = msg.getLanguage();
-				_SyncMsgVersion = msg.getSyncMsgVersion();
+				_smartDeviceLinkLanguage = msg.getLanguage();
+				_hmiDisplayLanguage = msg.getHmiDisplayLanguage();
+				_smartDeviceLinkMsgVersion = msg.getsmartdevicelinkMsgVersion();
 				_vrCapabilities = msg.getVrCapabilities();
+				_vehicleType = msg.getVehicleType();
+				_proxyVersionInfo = msg.getProxyVersionInfo();
+				
+				if (!isDebugEnabled()) 
+				{
+					enableDebugTool();
+					DebugTool.logInfo("SMARTDEVICELINK Proxy Version: " + _proxyVersionInfo);
+					disableDebugTool();
+				}					
+				else
+					DebugTool.logInfo("SMARTDEVICELINK Proxy Version: " + _proxyVersionInfo);				
 				
 				// RegisterAppInterface
 				if (_advancedLifecycleManagementEnabled) {
 					
 					// Send onSmartDeviceLinkConnected message in ALM
-					_SmartDeviceLinkConnectionState = SmartDeviceLinkConnectionState.SMARTDEVICELINK_CONNECTED;
+					_smartDeviceLinkConnectionState = SmartDeviceLinkConnectionState.SMARTDEVICELINK_CONNECTED;
 					
 					// If registerAppInterface failed, exit with OnProxyUnusable
 					if (!msg.getSuccess()) {
@@ -1017,11 +1307,19 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 						_mainUIHandler.post(new Runnable() {
 							@Override
 							public void run() {
-								((IProxyListener)_proxyListener).onRegisterAppInterfaceResponse(msg);
+								if (_proxyListener instanceof IProxyListener) {
+									((IProxyListener)_proxyListener).onRegisterAppInterfaceResponse(msg);
+								} else if (_proxyListener instanceof IProxyListenerALM) {
+									//((IProxyListenerALM)_proxyListener).onRegisterAppInterfaceResponse(msg);
+								}
 							}
 						});
 					} else {
-						((IProxyListener)_proxyListener).onRegisterAppInterfaceResponse(msg);							
+						if (_proxyListener instanceof IProxyListener) {
+							((IProxyListener)_proxyListener).onRegisterAppInterfaceResponse(msg);
+						} else if (_proxyListener instanceof IProxyListenerALM) {
+							//((IProxyListenerALM)_proxyListener).onRegisterAppInterfaceResponse(msg);
+						}
 					}
 				}
 			} else if (functionName.equals(Names.Speak)) {
@@ -1178,16 +1476,86 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 				// EncodedSyncPData
 				
 				final EncodedSyncPDataResponse msg = new EncodedSyncPDataResponse(hash);
-				if (_callbackToUIThread) {
-					// Run in UI thread
-					_mainUIHandler.post(new Runnable() {
-						@Override
-						public void run() {
-							_proxyListener.onEncodedSyncPDataResponse(msg); 
+				
+				Intent sendIntent = createBroadcastIntent();
+				updateBroadcastIntent(sendIntent, "RPC_NAME", Names.EncodedSyncPData);
+				updateBroadcastIntent(sendIntent, "TYPE", Names.response);
+				updateBroadcastIntent(sendIntent, "SUCCESS", msg.getSuccess());
+				updateBroadcastIntent(sendIntent, "COMMENT1", msg.getInfo());
+				updateBroadcastIntent(sendIntent, "COMMENT2", msg.getResultCode().toString());
+				updateBroadcastIntent(sendIntent, "CORRID", msg.getCorrelationID());
+				sendBroadcastIntent(sendIntent);
+
+				try
+				{
+					Class<?> cls = Class.forName(Names.ListenerExtend);
+					if (cls.isInstance(_proxyListener))
+					{
+						final Object t = cls.cast(_proxyListener);
+						final Method meth = cls.getDeclaredMethod(Names.onEncodedSyncPDataResponse, new Class[]{EncodedSyncPDataResponse.class});
+						if (_callbackToUIThread) {
+							// Run in UI thread
+							_mainUIHandler.post(new Runnable() {
+								@Override
+								public void run() {
+									try {
+										meth.invoke(t, msg);
+									}
+									catch (Exception e)  {
+										e.printStackTrace();
+									}
+								}
+							});
+						} else {
+							meth.invoke(t, msg);
 						}
-					});
-				} else {
-					_proxyListener.onEncodedSyncPDataResponse(msg); 		
+					}
+				}
+				catch (Exception e)
+				{
+					//private lib not present
+				}
+			} else if (functionName.equals(Names.SyncPData)) {
+				// SyncPData
+				
+				final SyncPDataResponse msg = new SyncPDataResponse(hash);
+
+				Intent sendIntent = createBroadcastIntent();
+				updateBroadcastIntent(sendIntent, "RPC_NAME", Names.SyncPData);
+				updateBroadcastIntent(sendIntent, "TYPE", Names.response);
+				updateBroadcastIntent(sendIntent, "SUCCESS", msg.getSuccess());				
+				updateBroadcastIntent(sendIntent, "COMMENT1", msg.getInfo());
+				updateBroadcastIntent(sendIntent, "COMMENT2", msg.getResultCode().toString());
+				updateBroadcastIntent(sendIntent, "CORRID", msg.getCorrelationID());
+				sendBroadcastIntent(sendIntent);				
+				try
+				{
+					Class<?> cls = Class.forName(Names.ListenerExtend);
+					if (cls.isInstance(_proxyListener))
+					{
+						final Object t = cls.cast(_proxyListener);
+						final Method meth = cls.getDeclaredMethod(Names.onSyncPDataResponse, new Class[]{SyncPDataResponse.class});
+						if (_callbackToUIThread) {
+							// Run in UI thread
+							_mainUIHandler.post(new Runnable() {
+								@Override
+								public void run() {
+									try {
+										meth.invoke(t, msg);
+									}
+									catch (Exception e)  {
+										e.printStackTrace();
+									}
+								}
+							});
+						} else {
+							meth.invoke(t, msg);
+						}
+					}
+				}
+				catch (Exception e)
+				{
+					//private lib not present
 				}
 			} else if (functionName.equals(Names.CreateInteractionChoiceSet)) {
 				// CreateInteractionChoiceSet
@@ -1235,19 +1603,19 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 					_proxyListener.onPerformInteractionResponse((PerformInteractionResponse)msg);		
 				}
 			} else if (functionName.equals(Names.SetGlobalProperties)) {
-				// SetGlobalPropertiesResponse (can also be Heartbeat)
+				// SetGlobalPropertiesResponse 
 				
 				final SetGlobalPropertiesResponse msg = new SetGlobalPropertiesResponse(hash);
 				if (_callbackToUIThread) {
-					// Run in UI thread
-					_mainUIHandler.post(new Runnable() {
-						@Override
-						public void run() {
-							_proxyListener.onSetGlobalPropertiesResponse((SetGlobalPropertiesResponse)msg);
-						}
-					});
-				} else {
-					_proxyListener.onSetGlobalPropertiesResponse((SetGlobalPropertiesResponse)msg);		
+						// Run in UI thread
+						_mainUIHandler.post(new Runnable() {
+							@Override
+							public void run() {
+								_proxyListener.onSetGlobalPropertiesResponse((SetGlobalPropertiesResponse)msg);
+							}
+						});
+					} else {
+						_proxyListener.onSetGlobalPropertiesResponse((SetGlobalPropertiesResponse)msg);		
 				}
 			} else if (functionName.equals(Names.ResetGlobalProperties)) {
 				// ResetGlobalProperties				
@@ -1278,11 +1646,19 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 					_mainUIHandler.post(new Runnable() {
 						@Override
 						public void run() {
-							((IProxyListener)_proxyListener).onUnregisterAppInterfaceResponse(msg);
+							if (_proxyListener instanceof IProxyListener) {
+								((IProxyListener)_proxyListener).onUnregisterAppInterfaceResponse(msg);
+							} else if (_proxyListener instanceof IProxyListenerALM) {
+								//((IProxyListenerALM)_proxyListener).onUnregisterAppInterfaceResponse(msg);
+							}
 						}
 					});
 				} else {
-					((IProxyListener)_proxyListener).onUnregisterAppInterfaceResponse(msg);	
+					if (_proxyListener instanceof IProxyListener) {
+						((IProxyListener)_proxyListener).onUnregisterAppInterfaceResponse(msg);
+					} else if (_proxyListener instanceof IProxyListenerALM) {
+						//((IProxyListenerALM)_proxyListener).onUnregisterAppInterfaceResponse(msg);
+					}
 				}
 				
 				notifyProxyClosed("UnregisterAppInterfaceResponse", null);
@@ -1300,16 +1676,339 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 				} else {
 					_proxyListener.onGenericResponse((GenericResponse)msg);	
 				}
+			} else if (functionName.equals(Names.Slider)) {
+                // Slider
+                final SliderResponse msg = new SliderResponse(hash);
+                if (_callbackToUIThread) {
+                    // Run in UI thread
+                    _mainUIHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            _proxyListener.onSliderResponse((SliderResponse)msg);
+                        }
+                    });
+                } else {
+                    _proxyListener.onSliderResponse((SliderResponse)msg);   
+                }
+            } else if (functionName.equals(Names.PutFile)) {
+                // PutFile
+                final PutFileResponse msg = new PutFileResponse(hash);
+                if (_callbackToUIThread) {
+                    // Run in UI thread
+                    _mainUIHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            _proxyListener.onPutFileResponse((PutFileResponse)msg);
+                        }
+                    });
+                } else {
+                    _proxyListener.onPutFileResponse((PutFileResponse)msg);
+                }
+            } else if (functionName.equals(Names.DeleteFile)) {
+                // DeleteFile
+                final DeleteFileResponse msg = new DeleteFileResponse(hash);
+                if (_callbackToUIThread) {
+                    // Run in UI thread
+                    _mainUIHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            _proxyListener.onDeleteFileResponse((DeleteFileResponse)msg);
+                        }
+                    });
+                } else {
+                    _proxyListener.onDeleteFileResponse((DeleteFileResponse)msg);   
+                }
+            } else if (functionName.equals(Names.ListFiles)) {
+                // ListFiles
+                final ListFilesResponse msg = new ListFilesResponse(hash);
+                if (_callbackToUIThread) {
+                    // Run in UI thread
+                    _mainUIHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            _proxyListener.onListFilesResponse((ListFilesResponse)msg);
+                        }
+                    });
+                } else {
+                    _proxyListener.onListFilesResponse((ListFilesResponse)msg);     
+                }
+            } else if (functionName.equals(Names.SetAppIcon)) {
+                // SetAppIcon
+                final SetAppIconResponse msg = new SetAppIconResponse(hash);
+                if (_callbackToUIThread) {
+                    // Run in UI thread
+                    _mainUIHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            _proxyListener.onSetAppIconResponse((SetAppIconResponse)msg);
+                        }
+                    });
+                } else {
+                        _proxyListener.onSetAppIconResponse((SetAppIconResponse)msg);   
+                }
+            } else if (functionName.equals(Names.ScrollableMessage)) {
+                // ScrollableMessage
+                final ScrollableMessageResponse msg = new ScrollableMessageResponse(hash);
+                if (_callbackToUIThread) {
+                    // Run in UI thread
+                    _mainUIHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            _proxyListener.onScrollableMessageResponse((ScrollableMessageResponse)msg);
+                        }
+                    });
+                } else {
+                    _proxyListener.onScrollableMessageResponse((ScrollableMessageResponse)msg);     
+                }
+            } else if (functionName.equals(Names.ChangeRegistration)) {
+                // ChangeLanguageRegistration
+                final ChangeRegistrationResponse msg = new ChangeRegistrationResponse(hash);
+                if (_callbackToUIThread) {
+                    // Run in UI thread
+                    _mainUIHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            _proxyListener.onChangeRegistrationResponse((ChangeRegistrationResponse)msg);
+                        }
+                    });
+                } else {
+                    _proxyListener.onChangeRegistrationResponse((ChangeRegistrationResponse)msg);   
+                }
+            } else if (functionName.equals(Names.SetDisplayLayout)) {
+                // SetDisplayLayout
+                final SetDisplayLayoutResponse msg = new SetDisplayLayoutResponse(hash);
+                if (_callbackToUIThread) {
+                    // Run in UI thread
+                    _mainUIHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            _proxyListener.onSetDisplayLayoutResponse((SetDisplayLayoutResponse)msg);
+                        }
+                    });
+                } else {
+                        _proxyListener.onSetDisplayLayoutResponse((SetDisplayLayoutResponse)msg);
+                }
+            } else if (functionName.equals(Names.PerformAudioPassThru)) {
+                // PerformAudioPassThru
+                final PerformAudioPassThruResponse msg = new PerformAudioPassThruResponse(hash);
+                if (_callbackToUIThread) {
+                    // Run in UI thread
+                    _mainUIHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            _proxyListener.onPerformAudioPassThruResponse((PerformAudioPassThruResponse)msg);
+                        }
+                    });
+                } else {
+                    _proxyListener.onPerformAudioPassThruResponse((PerformAudioPassThruResponse)msg);       
+                }
+            } else if (functionName.equals(Names.EndAudioPassThru)) {
+                // EndAudioPassThru
+                final EndAudioPassThruResponse msg = new EndAudioPassThruResponse(hash);
+                if (_callbackToUIThread) {
+                    // Run in UI thread
+                    _mainUIHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            _proxyListener.onEndAudioPassThruResponse((EndAudioPassThruResponse)msg);
+                        }
+                    });
+                } else {
+                    _proxyListener.onEndAudioPassThruResponse((EndAudioPassThruResponse)msg);
+                }
+            } else if (functionName.equals(Names.SubscribeVehicleData)) {
+            	try {
+					Class<?> cls = Class.forName(Names.SubscribeVehicleDataExtend);
+					Constructor con = cls.getConstructor(new Class[]{Hashtable.class});															
+					final Object msg = con.newInstance(hash);	
+					// SubscribeVehicleDataExtend
+	                if (_callbackToUIThread) {
+	                    // Run in UI thread
+	                    _mainUIHandler.post(new Runnable() {
+	                        @Override
+	                        public void run() {
+	                            _proxyListener.onSubscribeVehicleDataResponse((SubscribeVehicleDataResponse)msg);
+	                        }
+	                    });
+	                } else {
+	                    _proxyListener.onSubscribeVehicleDataResponse((SubscribeVehicleDataResponse)msg);   
+	                }									
+				}                 
+            	catch(Exception e) {             	
+            	// SubscribeVehicleData
+	                final SubscribeVehicleDataResponse msg = new SubscribeVehicleDataResponse(hash);
+	                if (_callbackToUIThread) {
+	                    // Run in UI thread
+	                    _mainUIHandler.post(new Runnable() {
+	                        @Override
+	                        public void run() {
+	                            _proxyListener.onSubscribeVehicleDataResponse((SubscribeVehicleDataResponse)msg);
+	                        }
+	                    });
+	                } else {
+	                    _proxyListener.onSubscribeVehicleDataResponse((SubscribeVehicleDataResponse)msg);       
+	                }
+            	}
+            } else if (functionName.equals(Names.UnsubscribeVehicleData)) {
+            	try {
+					Class<?> cls = Class.forName(Names.UnsubscribeVehicleDataExtend);
+					Constructor con = cls.getConstructor(new Class[]{Hashtable.class});															
+					final Object msg = con.newInstance(hash);	
+					// UnsubscribeVehicleDataExtend
+	                if (_callbackToUIThread) {
+	                    // Run in UI thread
+	                    _mainUIHandler.post(new Runnable() {
+	                        @Override
+	                        public void run() {
+	                            _proxyListener.onUnsubscribeVehicleDataResponse((UnsubscribeVehicleDataResponse)msg);
+	                        }
+	                    });
+	                } else {
+	                    _proxyListener.onUnsubscribeVehicleDataResponse((UnsubscribeVehicleDataResponse)msg);   
+	                }									
+				}   
+            	catch(Exception e) {                            	            
+	            	// UnsubscribeVehicleData
+	                final UnsubscribeVehicleDataResponse msg = new UnsubscribeVehicleDataResponse(hash);
+	                if (_callbackToUIThread) {
+	                    // Run in UI thread
+	                    _mainUIHandler.post(new Runnable() {
+	                        @Override
+	                        public void run() {
+	                            _proxyListener.onUnsubscribeVehicleDataResponse((UnsubscribeVehicleDataResponse)msg);
+	                        }
+	                    });
+	                } else {
+	                    _proxyListener.onUnsubscribeVehicleDataResponse((UnsubscribeVehicleDataResponse)msg);   
+	                }
+                }
+            } else if (functionName.equals(Names.GetVehicleData)) {            	            	            	
+            	try {
+					Class<?> cls = Class.forName(Names.GetVehicleDataExtend);
+					Constructor con = cls.getConstructor(new Class[]{Hashtable.class});															
+					final Object msg = con.newInstance(hash);	
+					// GetVehicleDataExtend
+	                if (_callbackToUIThread) {
+	                    // Run in UI thread
+	                    _mainUIHandler.post(new Runnable() {
+	                        @Override
+	                        public void run() {
+	                            _proxyListener.onGetVehicleDataResponse((GetVehicleDataResponse)msg);
+	                        }
+	                    });
+	                } else {
+	                    _proxyListener.onGetVehicleDataResponse((GetVehicleDataResponse)msg);   
+	                }									
+				}   
+            	catch(Exception e) {
+            		// GetVehicleData
+                    final GetVehicleDataResponse msg = new GetVehicleDataResponse(hash);
+                    if (_callbackToUIThread) {
+                        // Run in UI thread
+                        _mainUIHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                _proxyListener.onGetVehicleDataResponse((GetVehicleDataResponse)msg);
+                            }
+                        });
+                    } else {
+                        _proxyListener.onGetVehicleDataResponse((GetVehicleDataResponse)msg);   
+                    }
+			     }            	               
+            } else if (functionName.equals(Names.ReadDID)) {
+                // ReadDID
+                final ReadDIDResponse msg = new ReadDIDResponse(hash);
+                if (_callbackToUIThread) {
+                    // Run in UI thread
+                    _mainUIHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            _proxyListener.onReadDIDResponse((ReadDIDResponse)msg);
+                        }
+                    });
+                } else {
+                    _proxyListener.onReadDIDResponse((ReadDIDResponse)msg); 
+                }
+            } else if (functionName.equals(Names.GetDTCs)) {
+                // GetDTCs
+                final GetDTCsResponse msg = new GetDTCsResponse(hash);
+                if (_callbackToUIThread) {
+                    // Run in UI thread
+                    _mainUIHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            _proxyListener.onGetDTCsResponse((GetDTCsResponse)msg);
+                        }
+                    });
+                } else {
+                    _proxyListener.onGetDTCsResponse((GetDTCsResponse)msg); 
+                }
+            } else if (functionName.equals(Names.AlertManeuver)) {
+				// AlertManeuver
+				final AlertManeuverResponse msg = new AlertManeuverResponse(hash);
+				if (_callbackToUIThread) {
+					// Run in UI thread
+					_mainUIHandler.post(new Runnable() {
+						@Override
+						public void run() {
+							_proxyListener.onAlertManeuverResponse((AlertManeuverResponse)msg);
+						}
+					});
+				} else {
+					_proxyListener.onAlertManeuverResponse((AlertManeuverResponse)msg);	
+				}
+			} else if (functionName.equals(Names.ShowConstantTBT)) {
+				// ShowConstantTBT
+				final ShowConstantTBTResponse msg = new ShowConstantTBTResponse(hash);
+				if (_callbackToUIThread) {
+					// Run in UI thread
+					_mainUIHandler.post(new Runnable() {
+						@Override
+						public void run() {
+							_proxyListener.onShowConstantTBTResponse((ShowConstantTBTResponse)msg);
+						}
+					});
+				} else {
+					_proxyListener.onShowConstantTBTResponse((ShowConstantTBTResponse)msg);	
+				}
+			} else if (functionName.equals(Names.UpdateTurnList)) {
+				// UpdateTurnList
+				final UpdateTurnListResponse msg = new UpdateTurnListResponse(hash);
+				if (_callbackToUIThread) {
+					// Run in UI thread
+					_mainUIHandler.post(new Runnable() {
+						@Override
+						public void run() {
+							_proxyListener.onUpdateTurnListResponse((UpdateTurnListResponse)msg);
+						}
+					});
+				} else {
+					_proxyListener.onUpdateTurnListResponse((UpdateTurnListResponse)msg);	
+				}
+			} else if (functionName.equals(Names.DialNumber)) {
+				// DialNumber
+				final DialNumberResponse msg = new DialNumberResponse(hash);
+				if (_callbackToUIThread) {
+					// Run in UI thread
+					_mainUIHandler.post(new Runnable() {
+						@Override
+						public void run() {
+							_proxyListener.onDialNumberResponse((DialNumberResponse)msg);
+						}
+					});
+				} else {
+					_proxyListener.onDialNumberResponse((DialNumberResponse)msg);	
+				}
 			} else {
-				if (_SyncMsgVersion != null) {
+				if (_smartDeviceLinkMsgVersion != null) {
 					DebugTool.logError("Unrecognized response Message: " + functionName.toString() + 
-							"SmartDeviceLink Message Version = " + _SyncMsgVersion);
+							"SMARTDEVICELINK Message Version = " + _smartDeviceLinkMsgVersion);
 				} else {
 					DebugTool.logError("Unrecognized response Message: " + functionName.toString());
 				}
 			} // end-if
 		} else if (messageType.equals(Names.notification)) {
-			SyncTrace.logRPCEvent(InterfaceActivityDirection.Receive, new RPCNotification(rpcMsg), SMARTDEVICELINK_LIB_TRACE_KEY);
+			SmartDeviceLinkTrace.logRPCEvent(InterfaceActivityDirection.Receive, new RPCNotification(rpcMsg), SMARTDEVICELINK_LIB_TRACE_KEY);
 			if (functionName.equals(Names.OnHMIStatus)) {
 				// OnHMIStatus
 				
@@ -1329,7 +2028,7 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 					} else {
 						_proxyListener.onOnHMIStatus((OnHMIStatus)msg);
 					}
-				}
+				}				
 			} else if (functionName.equals(Names.OnCommand)) {
 				// OnCommand
 				
@@ -1361,20 +2060,114 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 					_proxyListener.onOnDriverDistraction(msg);
 				}
 			} else if (functionName.equals(Names.OnEncodedSyncPData)) {
-				// OnEncodedSyncPData
-				
+				// OnEncodedSyncPData;
 				final OnEncodedSyncPData msg = new OnEncodedSyncPData(hash);
+
+
+				Intent sendIntent = createBroadcastIntent();
+				updateBroadcastIntent(sendIntent, "RPC_NAME", Names.OnEncodedSyncPData);							
+				updateBroadcastIntent(sendIntent, "TYPE", Names.notification);
+				
+				// If url is null, then send notification to the app, otherwise, send to URL
+				if (msg.getUrl() == null) {
+					updateBroadcastIntent(sendIntent, "COMMENT1", "URL is a null value (received)");
+					sendBroadcastIntent(sendIntent);					
+					try
+					{
+						Class<?> cls = Class.forName(Names.ListenerExtend);
+						if (cls.isInstance(_proxyListener))
+						{
+							final Object t = cls.cast(_proxyListener);
+							final Method meth = cls.getDeclaredMethod(Names.onOnEncodedSyncPData, new Class[]{OnEncodedSyncPData.class});
+							if (_callbackToUIThread) {
+								// Run in UI thread
+								_mainUIHandler.post(new Runnable() {
+									@Override
+									public void run() {
+										try {
+											meth.invoke(t, msg);
+										}
+										catch (Exception e)  {
+											e.printStackTrace();
+										}
+									}
+								});
+							} else {
+								meth.invoke(t, msg);
+							}
+						}
+					}
+					catch (Exception e)
+					{
+						//private lib not present
+					}
+				} else {
+					updateBroadcastIntent(sendIntent, "COMMENT1", "Sending smartDeviceLinkp to cloud: " + msg.getUrl());
+					sendBroadcastIntent(sendIntent);				
 					
-				if (_callbackToUIThread) {
-					// Run in UI thread
-					_mainUIHandler.post(new Runnable() {
+					// URL has data, attempt to post request to external server
+					Thread handleOffboardSmartDeviceLinkTransmissionTread = new Thread() {
 						@Override
 						public void run() {
-							_proxyListener.onOnEncodedSyncPData(msg);
+							sendEncodedSyncPDataToUrl(msg.getUrl(), msg.getData(), msg.getTimeout());
 						}
-					});
-				} else {
-					_proxyListener.onOnEncodedSyncPData(msg);
+					};
+
+					handleOffboardSmartDeviceLinkTransmissionTread.start();
+				}
+			} else if (functionName.equals(Names.OnSyncPData)) {
+				// OnSyncPData
+				final OnSyncPData msg = new OnSyncPData(hash);
+				Intent sendIntent = createBroadcastIntent();
+				updateBroadcastIntent(sendIntent, "RPC_NAME", Names.OnSyncPData);
+				updateBroadcastIntent(sendIntent, "TYPE", Names.notification);
+				
+				// If url is null, then send notification to the app, otherwise, send to URL
+				if (msg.getUrl() == null) {	
+					updateBroadcastIntent(sendIntent, "COMMENT1", "URL is a null value (received)");
+					sendBroadcastIntent(sendIntent);
+					try
+					{
+						Class<?> cls = Class.forName(Names.ListenerExtend);
+						if (cls.isInstance(_proxyListener))
+						{
+							final Object t = cls.cast(_proxyListener);
+							final Method meth = cls.getDeclaredMethod(Names.onOnSyncPData, new Class[]{OnSyncPData.class});
+							if (_callbackToUIThread) {
+								// Run in UI thread
+								_mainUIHandler.post(new Runnable() {
+									@Override
+									public void run() {
+										try {
+											meth.invoke(t, msg);
+										}
+										catch (Exception e)  {
+											e.printStackTrace();
+										}
+									}
+								});
+							} else {
+								meth.invoke(t, msg);
+							}
+						}
+					}
+					catch (Exception e)
+					{
+						//private lib not present
+					}
+				} else { //url not null, send to url
+					updateBroadcastIntent(sendIntent, "COMMENT1", "Sending smartDeviceLinkp to cloud: " + msg.getUrl());
+					sendBroadcastIntent(sendIntent);				
+					Log.i("pt", "send smartDeviceLinkp to url");
+					// URL has data, attempt to post request to external server
+					Thread handleOffboardSmartDeviceLinkTransmissionTread = new Thread() {
+						@Override
+						public void run() {
+							sendSyncPDataToUrl(msg.getUrl(), msg.getSyncPData(), msg.getTimeout());
+						}
+					};
+
+					handleOffboardSmartDeviceLinkTransmissionTread.start();
 				}
 			} else if (functionName.equals(Names.OnPermissionsChange)) {
 				//OnPermissionsChange
@@ -1436,7 +2229,70 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 				} else {
 					_proxyListener.onOnButtonEvent((OnButtonEvent)msg);
 				}
-			} else if (functionName.equals(Names.OnAppInterfaceUnregistered)) {
+			} else if (functionName.equals(Names.OnLanguageChange)) {
+				// OnLanguageChange
+				
+				final OnLanguageChange msg = new OnLanguageChange(hash);
+				if (_callbackToUIThread) {
+					// Run in UI thread
+					_mainUIHandler.post(new Runnable() {
+						@Override
+						public void run() {
+							_proxyListener.onOnLanguageChange((OnLanguageChange)msg);
+						}
+					});
+				} else {
+					_proxyListener.onOnLanguageChange((OnLanguageChange)msg);
+				}
+			} else if (functionName.equals(Names.OnAudioPassThru)) {				
+				// OnAudioPassThru
+				final OnAudioPassThru msg = new OnAudioPassThru(hash);
+                if (_callbackToUIThread) {
+                    // Run in UI thread
+                    _mainUIHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+    						_proxyListener.onOnAudioPassThru((OnAudioPassThru)msg);
+                        }
+                    });
+                } else {
+					_proxyListener.onOnAudioPassThru((OnAudioPassThru)msg);
+                }				
+			} else if (functionName.equals(Names.OnVehicleData)) {               
+            	try {
+					Class<?> cls = Class.forName(Names.OnVehicleDataExtend);
+					Constructor con = cls.getConstructor(new Class[]{Hashtable.class});															
+					final Object msg = con.newInstance(hash);	
+					// OnVehicleDataExtend
+	                if (_callbackToUIThread) {
+	                    // Run in UI thread
+	                    _mainUIHandler.post(new Runnable() {
+	                        @Override
+	                        public void run() {
+	                            _proxyListener.onOnVehicleData((OnVehicleData)msg);
+	                        }
+	                    });
+	                } else {
+	                    _proxyListener.onOnVehicleData((OnVehicleData)msg);   
+	                }									
+				}   				
+            	catch(Exception e) {
+					// OnVehicleData
+	                final OnVehicleData msg = new OnVehicleData(hash);
+	                if (_callbackToUIThread) {
+	                    // Run in UI thread
+	                    _mainUIHandler.post(new Runnable() {
+	                        @Override
+	                        public void run() {
+	                            _proxyListener.onOnVehicleData((OnVehicleData)msg);
+	                        }
+	                    });
+	                } else {
+	                    _proxyListener.onOnVehicleData((OnVehicleData)msg);
+	                }
+				} 
+			}
+			else if (functionName.equals(Names.OnAppInterfaceUnregistered)) {
 				// OnAppInterfaceUnregistered
 				
 				_appInterfaceRegisterd = false;
@@ -1448,8 +2304,12 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 								
 				if (_advancedLifecycleManagementEnabled) {
 					// This requires the proxy to be cycled
-					cycleProxy(SmartDeviceLinkDisconnectedReason.convertAppInterfaceUnregisteredReason(msg.getReason()));
-				} else {
+                    if (this.getCurrentTransportType() == TransportType.BLUETOOTH) {
+                        cycleProxy(SmartDeviceLinkDisconnectedReason.convertAppInterfaceUnregisteredReason(msg.getReason()));
+                    } else {
+                        Log.e(this.getClass().getName(), "HandleRPCMessage. No cycle required if transport is TCP");
+                    }
+                } else {
 					if (_callbackToUIThread) {
 						// Run in UI thread
 						_mainUIHandler.post(new Runnable() {
@@ -1464,24 +2324,23 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 					
 					notifyProxyClosed("OnAppInterfaceUnregistered", null);
 				}
-			}
-			else {
-				if (_SyncMsgVersion != null) {
+			} else {
+				if (_smartDeviceLinkMsgVersion != null) {
 					DebugTool.logInfo("Unrecognized notification Message: " + functionName.toString() + 
-							" connected to SmartDeviceLink using message version: " + _SyncMsgVersion.getMajorVersion() + "." + _SyncMsgVersion.getMinorVersion());
+							" connected to SMARTDEVICELINK using message version: " + _smartDeviceLinkMsgVersion.getMajorVersion() + "." + _smartDeviceLinkMsgVersion.getMinorVersion());
 				} else {
 					DebugTool.logInfo("Unrecognized notification Message: " + functionName.toString());
 				}
 			} // end-if
 		} // end-if notification
 		
-		SyncTrace.logProxyEvent("Proxy received RPC Message: " + functionName, SMARTDEVICELINK_LIB_TRACE_KEY);
+		SmartDeviceLinkTrace.logProxyEvent("Proxy received RPC Message: " + functionName, SMARTDEVICELINK_LIB_TRACE_KEY);
 	}
 	
 	/**
-	 * Takes an RPCRequest and sends it to SmartDeviceLink.  Responses are captured through callback on IProxyListener.  
+	 * Takes an RPCRequest and sends it to SMARTDEVICELINK.  Responses are captured through callback on IProxyListener.  
 	 * 
-	 * @param msg
+	 * @param request
 	 * @throws SmartDeviceLinkException
 	 */
 	public void sendRPCRequest(RPCRequest request) throws SmartDeviceLinkException {
@@ -1491,40 +2350,40 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 		
 		// Test if request is null
 		if (request == null) {
-			SyncTrace.logProxyEvent("Application called sendRPCRequest method with a null RPCRequest.", SMARTDEVICELINK_LIB_TRACE_KEY);
+			SmartDeviceLinkTrace.logProxyEvent("Application called sendRPCRequest method with a null RPCRequest.", SMARTDEVICELINK_LIB_TRACE_KEY);
 			throw new IllegalArgumentException("sendRPCRequest cannot be called with a null request.");
 		}
 		
-		SyncTrace.logProxyEvent("Application called sendRPCRequest method for RPCRequest: ." + request.getFunctionName(), SMARTDEVICELINK_LIB_TRACE_KEY);
+		SmartDeviceLinkTrace.logProxyEvent("Application called sendRPCRequest method for RPCRequest: ." + request.getFunctionName(), SMARTDEVICELINK_LIB_TRACE_KEY);
 			
-		// Test if SmartDeviceLinkConnection is null
+		// Test if smartDeviceLinkConnection is null
 		synchronized(CONNECTION_REFERENCE_LOCK) {
-			if (_SmartDeviceLinkConnection == null || !_SmartDeviceLinkConnection.getIsConnected()) {
-				SyncTrace.logProxyEvent("Application attempted to send and RPCRequest without a connected transport.", SMARTDEVICELINK_LIB_TRACE_KEY);
-				throw new SmartDeviceLinkException("There is no valid connection to SmartDeviceLink. sendRPCRequest cannot be called until SmartDeviceLink has been connected.", SmartDeviceLinkExceptionCause.SMARTDEVICELINK_UNAVAILALBE);
+			if (_smartDeviceLinkConnection == null || !_smartDeviceLinkConnection.getIsConnected()) {
+				SmartDeviceLinkTrace.logProxyEvent("Application attempted to send and RPCRequest without a connected transport.", SMARTDEVICELINK_LIB_TRACE_KEY);
+				throw new SmartDeviceLinkException("There is no valid connection to SMARTDEVICELINK. sendRPCRequest cannot be called until SMARTDEVICELINK has been connected.", SmartDeviceLinkExceptionCause.SMARTDEVICELINK_UNAVAILALBE);
 			}
 		}
 		
 		// Test for illegal correlation ID
 		if (isCorrelationIDProtected(request.getCorrelationID())) {
 			
-			SyncTrace.logProxyEvent("Application attempted to use the reserved correlation ID, " + request.getCorrelationID(), SMARTDEVICELINK_LIB_TRACE_KEY);
+			SmartDeviceLinkTrace.logProxyEvent("Application attempted to use the reserved correlation ID, " + request.getCorrelationID(), SMARTDEVICELINK_LIB_TRACE_KEY);
 			throw new SmartDeviceLinkException("Invalid correlation ID. The correlation ID, " + request.getCorrelationID()
 					+ " , is a reserved correlation ID.", SmartDeviceLinkExceptionCause.RESERVED_CORRELATION_ID);
 		}
 		
-		// Throw exception if RPCRequest is sent when SmartDeviceLink is unavailable 
+		// Throw exception if RPCRequest is sent when SMARTDEVICELINK is unavailable 
 		if (!_appInterfaceRegisterd && request.getFunctionName() != Names.RegisterAppInterface) {
 			
-			SyncTrace.logProxyEvent("Application attempted to send an RPCRequest (non-registerAppInterface), before the interface was registerd.", SMARTDEVICELINK_LIB_TRACE_KEY);
-			throw new SmartDeviceLinkException("SmartDeviceLink is currently unavailable. RPC Requests cannot be sent.", SmartDeviceLinkExceptionCause.SMARTDEVICELINK_UNAVAILALBE);
+			SmartDeviceLinkTrace.logProxyEvent("Application attempted to send an RPCRequest (non-registerAppInterface), before the interface was registerd.", SMARTDEVICELINK_LIB_TRACE_KEY);
+			throw new SmartDeviceLinkException("SMARTDEVICELINK is currently unavailable. RPC Requests cannot be sent.", SmartDeviceLinkExceptionCause.SMARTDEVICELINK_UNAVAILALBE);
 		}
 				
 		if (_advancedLifecycleManagementEnabled) {
 			if (		   request.getFunctionName() == Names.RegisterAppInterface
 					|| request.getFunctionName() == Names.UnregisterAppInterface) {
 				
-				SyncTrace.logProxyEvent("Application attempted to send a RegisterAppInterface or UnregisterAppInterface while using ALM.", SMARTDEVICELINK_LIB_TRACE_KEY);
+				SmartDeviceLinkTrace.logProxyEvent("Application attempted to send a RegisterAppInterface or UnregisterAppInterface while using ALM.", SMARTDEVICELINK_LIB_TRACE_KEY);
 				throw new SmartDeviceLinkException("The RPCRequest, " + request.getFunctionName() + 
 						", is unnallowed using the Advanced Lifecycle Management Model.", SmartDeviceLinkExceptionCause.INCORRECT_LIFECYCLE_MODEL);
 			}
@@ -1533,12 +2392,8 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 		sendRPCRequestPrivate(request);
 	} // end-method
 	
-	public void sendRPCRequest(RPCMessage request) throws SmartDeviceLinkException {
-		sendRPCRequest((RPCRequest) request);
-	}
-	
 	protected void notifyProxyClosed(final String info, final Exception e) {		
-		SyncTrace.logProxyEvent("NotifyProxyClose", SMARTDEVICELINK_LIB_TRACE_KEY);
+		SmartDeviceLinkTrace.logProxyEvent("NotifyProxyClose", SMARTDEVICELINK_LIB_TRACE_KEY);
 		
 		OnProxyClosed message = new OnProxyClosed(info, e);
 		queueInternalMessage(message);
@@ -1558,17 +2413,21 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 			
 			try {
 				registerAppInterfacePrivate(
-						_SyncMsgVersionRequest,
+						_smartDeviceLinkMsgVersionRequest,
 						_applicationName,
+						_ttsName,
 						_ngnMediaScreenAppName,
 						_vrSynonyms,
 						_isMediaApp, 
-						_SmartDeviceLinkLanguageDesired,
+						_smartDeviceLinkLanguageDesired,
+						_hmiDisplayLanguageDesired,
+						_appType,
+						_appID,
 						_autoActivateIdDesired,
 						REGISTER_APP_INTERFACE_CORRELATION_ID);
 				
 			} catch (Exception e) {
-				notifyProxyClosed("Failed to register application interface with SmartDeviceLink. Check parameter values given to SmartDeviceLinkProxy constructor.", e);
+				notifyProxyClosed("Failed to register application interface with SMARTDEVICELINK. Check parameter values given to SmartDeviceLinkProxy constructor.", e);
 			}
 		} else {
 			InternalProxyMessage message = new InternalProxyMessage(Names.OnProxyOpened);
@@ -1593,18 +2452,142 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 			}
 		}
 	}
+	
+	public void setAppService(Service mService)
+	{
+		_appService = mService;
+	}
 
 	/******************** Public Helper Methods *************************/
 	
+	/*Begin V1 Enhanced helper*/
+	
 	/**
-	 *Sends an AddCommand RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 *Sends an AddCommand RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 *
-	 *@param commandID
-	 *@param menuText
-	 *@param parentID
-	 *@param position
-	 *@param vrCommands
-	 *@param correlationID
+	 *@param commandID -Unique command ID of the command to add.
+	 *@param menuText  -Menu text for optional sub value containing menu parameters.
+	 *@param parentID  -Menu parent ID for optional sub value containing menu parameters.
+	 *@param position  -Menu position for optional sub value containing menu parameters.
+	 *@param vrCommands -VR synonyms for this AddCommand.
+	 *@param IconValue -A static hex icon value or the binary image file name identifier (sent by the PutFile RPC).
+	 *@param IconType -Describes whether the image is static or dynamic
+	 *@param correlationID -A unique ID that correlates each RPCRequest and RPCResponse
+	 *@throws SmartDeviceLinkException
+	 */
+	public void addCommand(Integer commandID,
+			String menuText, Integer parentID, Integer position,
+			Vector<String> vrCommands, String IconValue, ImageType IconType, Integer correlationID) 
+			throws SmartDeviceLinkException {
+		
+		AddCommand msg = RPCRequestFactory.buildAddCommand(commandID, menuText, parentID, position,
+			vrCommands, IconValue, IconType, correlationID);
+		
+		sendRPCRequest(msg);
+	}
+	
+	/**
+	 *Sends an AddCommand RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
+	 *
+	 *@param commandID -Unique command ID of the command to add.
+	 *@param menuText -Menu text for optional sub value containing menu parameters.
+	 *@param position -Menu position for optional sub value containing menu parameters.
+	 *@param vrCommands -VR synonyms for this AddCommand.
+	 *@param IconValue -A static hex icon value or the binary image file name identifier (sent by the PutFile RPC).
+	 *@param IconType -Describes whether the image is static or dynamic
+	 *@param correlationID -A unique ID that correlates each RPCRequest and RPCResponse
+	 *@throws SmartDeviceLinkException
+	 */
+	public void addCommand(Integer commandID,
+			String menuText, Integer position,
+			Vector<String> vrCommands, String IconValue, ImageType IconType, Integer correlationID) 
+			throws SmartDeviceLinkException {
+		
+		addCommand(commandID, menuText, null, position, vrCommands, IconValue, IconType, correlationID);
+	}
+	
+	/**
+	 *Sends an AddCommand RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
+	 *
+	 *@param commandID -Unique command ID of the command to add.
+	 *@param menuText -Menu text for optional sub value containing menu parameters.
+	 *@param position -Menu position for optional sub value containing menu parameters.
+	 *@param IconValue -A static hex icon value or the binary image file name identifier (sent by the PutFile RPC).
+	 *@param IconType -Describes whether the image is static or dynamic
+	 *@param correlationID -A unique ID that correlates each RPCRequest and RPCResponse
+	 *@throws SmartDeviceLinkException
+	 */
+	public void addCommand(Integer commandID,
+			String menuText, Integer position, String IconValue, ImageType IconType,
+			Integer correlationID) 
+			throws SmartDeviceLinkException {
+		
+		addCommand(commandID, menuText, null, position, null, IconValue, IconType, correlationID);
+	}
+	
+	/**
+	 *Sends an AddCommand RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
+	 *
+	 *@param commandID -Unique command ID of the command to add.
+	 *@param menuText -Menu text for optional sub value containing menu parameters.
+	 *@param IconValue -A static hex icon value or the binary image file name identifier (sent by the PutFile RPC).
+	 *@param IconType -Describes whether the image is static or dynamic
+	 *@param correlationID -A unique ID that correlates each RPCRequest and RPCResponse
+	 *@throws SmartDeviceLinkException
+	 */
+	public void addCommand(Integer commandID,
+			String menuText, String IconValue, ImageType IconType, Integer correlationID) 
+			throws SmartDeviceLinkException {
+		
+		addCommand(commandID, menuText, null, null, null, IconValue, IconType, correlationID);
+	}
+	
+	/**
+	 * Sends an AddCommand RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param commandID -Unique command ID of the command to add.
+	 * @param menuText -Menu text for optional sub value containing menu parameters.
+	 * @param vrCommands -VR synonyms for this AddCommand.
+	 * @param IconValue -A static hex icon value or the binary image file name identifier (sent by the PutFile RPC).
+	 * @param IconType -Describes whether the image is static or dynamic
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse
+	 * @throws SmartDeviceLinkException
+	 */
+	public void addCommand(Integer commandID,
+			String menuText, Vector<String> vrCommands, String IconValue, ImageType IconType, Integer correlationID) 
+			throws SmartDeviceLinkException {
+		
+		addCommand(commandID, menuText, null, null, vrCommands, IconValue, IconType, correlationID);
+	}
+	
+	/**
+	 * Sends an AddCommand RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param commandID -Unique command ID of the command to add.
+	 * @param vrCommands -VR synonyms for this AddCommand.
+	 * @param IconValue -A static hex icon value or the binary image file name identifier (sent by the PutFile RPC).
+	 * @param IconType -Describes whether the image is static or dynamic
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse
+	 * @throws SmartDeviceLinkException
+	 */
+	public void addCommand(Integer commandID,
+			Vector<String> vrCommands, String IconValue, ImageType IconType, Integer correlationID) 
+			throws SmartDeviceLinkException {
+		
+		addCommand(commandID, null, null, null, vrCommands, IconValue, IconType, correlationID);
+	}
+
+	/*End V1 Enhanced helper*/
+	
+	/**
+	 *Sends an AddCommand RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
+	 *
+	 *@param commandID -Unique command ID of the command to add.
+	 *@param menuText -Menu text for optional sub value containing menu parameters.
+	 *@param parentID  -Menu parent ID for optional sub value containing menu parameters.
+	 *@param position  -Menu position for optional sub value containing menu parameters.
+	 *@param vrCommands -VR synonyms for this AddCommand.
+	 *@param correlationID -A unique ID that correlates each RPCRequest and RPCResponse
 	 *@throws SmartDeviceLinkException
 	 */
 	public void addCommand(Integer commandID,
@@ -1619,13 +2602,13 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	}
 	
 	/**
-	 *Sends an AddCommand RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 *Sends an AddCommand RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 *
-	 *@param commandID
-	 *@param menuText
-	 *@param position
-	 *@param vrCommands
-	 *@param correlationID
+	 *@param commandID -Unique command ID of the command to add.
+	 *@param menuText -Menu text for optional sub value containing menu parameters.
+	 *@param position  -Menu position for optional sub value containing menu parameters.
+	 *@param vrCommands -VR synonyms for this AddCommand.
+	 *@param correlationID -A unique ID that correlates each RPCRequest and RPCResponse
 	 *@throws SmartDeviceLinkException
 	 */
 	public void addCommand(Integer commandID,
@@ -1637,12 +2620,12 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	}
 	
 	/**
-	 *Sends an AddCommand RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 *Sends an AddCommand RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 *
-	 *@param commandID
-	 *@param menuText
-	 *@param position
-	 *@param correlationID
+	 *@param commandID -Unique command ID of the command to add.
+	 *@param menuText -Menu text for optional sub value containing menu parameters.
+	 *@param position  -Menu position for optional sub value containing menu parameters.
+	 *@param correlationID -A unique ID that correlates each RPCRequest and RPCResponse
 	 *@throws SmartDeviceLinkException
 	 */
 	public void addCommand(Integer commandID,
@@ -1654,28 +2637,29 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	}
 	
 	/**
-	 *Sends an AddCommand RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 *Sends an AddCommand RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 *
-	 *@param commandID
-	 *@param menuText
-	 *@param correlationID
+	 *@param commandID -Unique command ID of the command to add.
+	 *@param menuText -Menu text for optional sub value containing menu parameters.
+	 *@param correlationID -A unique ID that correlates each RPCRequest and RPCResponse
 	 *@throws SmartDeviceLinkException
 	 */
 	public void addCommand(Integer commandID,
 			String menuText, Integer correlationID) 
 			throws SmartDeviceLinkException {
+		Vector<String> vrCommands = null;
 		
-		addCommand(commandID, menuText, null, null, null, correlationID);
+		addCommand(commandID, menuText, null, null, vrCommands, correlationID);
 	}
 	
 	/**
-	 * Sends an AddCommand RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 * Sends an AddCommand RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 * 
-	 * @param commandID
-	 * @param menuText
-	 * @param vrCommands
-	 * @param correlationID
-	 * @throws SmartDeviceLinkException
+	 *@param commandID -Unique command ID of the command to add.
+	 *@param menuText -Menu text for optional sub value containing menu parameters.
+	 *@param vrCommands -VR synonyms for this AddCommand.
+	 *@param correlationID -A unique ID that correlates each RPCRequest and RPCResponse
+	 *@throws SmartDeviceLinkException
 	 */
 	public void addCommand(Integer commandID,
 			String menuText, Vector<String> vrCommands, Integer correlationID) 
@@ -1685,12 +2669,12 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	}
 	
 	/**
-	 * Sends an AddCommand RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 * Sends an AddCommand RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 * 
-	 * @param commandID
-	 * @param vrCommands
-	 * @param correlationID
-	 * @throws SmartDeviceLinkException
+	 *@param commandID -Unique command ID of the command to add.
+	 *@param vrCommands -VR synonyms for this AddCommand.
+	 *@param correlationID -A unique ID that correlates each RPCRequest and RPCResponse
+	 *@throws SmartDeviceLinkException
 	 */
 	public void addCommand(Integer commandID,
 			Vector<String> vrCommands, Integer correlationID) 
@@ -1698,14 +2682,15 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 		
 		addCommand(commandID, null, null, null, vrCommands, correlationID);
 	}
+		
 	
 	/**
-	 * Sends an AddSubMenu RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 * Sends an AddSubMenu RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 * 
-	 * @param menuID
-	 * @param menuName
-	 * @param position
-	 * @param correlationID
+	 * @param menuID -Unique ID of the sub menu to add.
+	 * @param menuName -Text to show in the menu for this sub menu.
+	 * @param position -Position within the items that are are at top level of the in application menu.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse
 	 * @throws SmartDeviceLinkException
 	 */
 	public void addSubMenu(Integer menuID, String menuName,
@@ -1719,11 +2704,11 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	}
 	
 	/**
-	 * Sends an AddSubMenu RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 * Sends an AddSubMenu RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 * 
-	 * @param menuID
-	 * @param menuName
-	 * @param correlationID
+	 * @param menuID -Unique ID of the sub menu to add.
+	 * @param menuName -Text to show in the menu for this sub menu.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse
 	 * @throws SmartDeviceLinkException
 	 */
 	public void addSubMenu(Integer menuID, String menuName,
@@ -1733,29 +2718,142 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	}
 	
 	/**
-	 * Sends an EncodedData RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 * Sends an EncodedData RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 * 
-	 * @param data
+	 * @param data -Contains base64 encoded string of SmartDeviceLinkP packets.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse
+	 * @throws SmartDeviceLinkException
+	 */
+	public void encodedSyncPData(Vector<String> data, Integer correlationID) 
+			throws SmartDeviceLinkException {
+		
+		Log.i("pt", "encodedSyncPData() giving to smartDeviceLink");
+		EncodedSyncPData msg = RPCRequestFactory.buildEncodedSyncPData(data, correlationID);
+		sendRPCRequest(msg);
+	}
+	
+	/**
+	 * Sends a Data RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param data 
 	 * @param correlationID
 	 * @throws SmartDeviceLinkException
 	 */
-	public void encodedSmartDeviceLinkPData(Vector<String> data, Integer correlationID) 
+	public void SyncPData(byte[] data, Integer correlationID) 
 			throws SmartDeviceLinkException {
 		
-		EncodedSyncPData msg = RPCRequestFactory.buildEncodedSyncPData(data, correlationID);
+		Log.i("pt", "SyncPData() giving to smartDeviceLink");
+		SyncPData msg = RPCRequestFactory.buildSyncPData(data, correlationID);
+		sendRPCRequest(msg);
+	}
+
+	/*Begin V1 Enhanced helper*/	
+	
+	
+	/**
+	 * Sends an Alert RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param ttsText -The text to speech message in the form of a string.
+	 * @param alertText1 -The first line of the alert text field.
+	 * @param alertText2 -The second line of the alert text field.
+	 * @param alertText3 -The optional third line of the alert text field.
+	 * @param playTone -Defines if tone should be played.
+	 * @param duration -Timeout in milliseconds.
+	 * @param softButtons -A list of App defined SoftButtons.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse
+	 * @throws SmartDeviceLinkException
+	 */
+	public void alert(String ttsText, String alertText1,
+			String alertText2, String alertText3, Boolean playTone, Integer duration, Vector<SoftButton> softButtons,
+			Integer correlationID) throws SmartDeviceLinkException {
+
+		Alert msg = RPCRequestFactory.buildAlert(ttsText, alertText1, alertText2, alertText3, playTone, duration, softButtons, correlationID);
 
 		sendRPCRequest(msg);
 	}
 	
 	/**
-	 * Sends an Alert RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 * Sends an Alert RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 * 
-	 * @param ttsText
-	 * @param alertText1
-	 * @param alertText2
-	 * @param playTone
-	 * @param duration
-	 * @param correlationID
+	 * @param ttsChunks -Text/phonemes to speak in the form of ttsChunks.
+	 * @param alertText1 -The first line of the alert text field.
+	 * @param alertText2 -The second line of the alert text field.
+	 * @param alertText3 -The optional third line of the alert text field.
+	 * @param playTone -Defines if tone should be played.
+	 * @param duration -Timeout in milliseconds.
+	 * @param softButtons -A list of App defined SoftButtons.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse
+	 * @throws SmartDeviceLinkException
+	 */
+	public void alert(Vector<TTSChunk> ttsChunks,
+			String alertText1, String alertText2, String alertText3, Boolean playTone,
+			Integer duration, Vector<SoftButton> softButtons, Integer correlationID) throws SmartDeviceLinkException {
+		
+		Alert msg = RPCRequestFactory.buildAlert(ttsChunks, alertText1, alertText2, alertText3, playTone, duration, softButtons, correlationID);
+
+		sendRPCRequest(msg);
+	}
+	
+	/**
+	 * Sends an Alert RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param ttsText -The text to speech message in the form of a string.
+	 * @param playTone -Defines if tone should be played.
+	 * @param softButtons -A list of App defined SoftButtons.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse
+	 * @throws SmartDeviceLinkException
+	 */
+	public void alert(String ttsText, Boolean playTone, Vector<SoftButton> softButtons,
+			Integer correlationID) throws SmartDeviceLinkException {
+		
+		alert(ttsText, null, null, null, playTone, null, softButtons, correlationID);
+	}
+	
+	/**
+	 * Sends an Alert RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param chunks -A list of text/phonemes to speak in the form of ttsChunks.
+	 * @param playTone -Defines if tone should be played.
+	 * @param softButtons -A list of App defined SoftButtons.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse
+	 * @throws SmartDeviceLinkException
+	 */
+	public void alert(Vector<TTSChunk> chunks, Boolean playTone, Vector<SoftButton> softButtons,
+			Integer correlationID) throws SmartDeviceLinkException {
+		
+		alert(chunks, null, null, null, playTone, null, softButtons, correlationID);
+	}
+	
+	/**
+	 * Sends an Alert RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param alertText1 -The first line of the alert text field.
+	 * @param alertText2 -The second line of the alert text field.
+	 * @param alertText3 -The optional third line of the alert text field.
+	 * @param playTone -Defines if tone should be played.
+	 * @param duration -Timeout in milliseconds.
+	 * @param softButtons -A list of App defined SoftButtons.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse
+	 * @throws SmartDeviceLinkException
+	 */
+	public void alert(String alertText1, String alertText2, String alertText3,
+			Boolean playTone, Integer duration, Vector<SoftButton> softButtons, Integer correlationID) 
+			throws SmartDeviceLinkException {
+		
+		alert((Vector<TTSChunk>)null, alertText1, alertText2, alertText3, playTone, duration, softButtons, correlationID);
+	}
+		
+	/*End V1 Enhanced helper*/
+	
+	/**
+	 * Sends an Alert RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param ttsText -The text to speech message in the form of a string.
+	 * @param alertText1 -The first line of the alert text field.
+	 * @param alertText2 -The second line of the alert text field.
+	 * @param playTone -Defines if tone should be played.
+	 * @param duration -Timeout in milliseconds.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse
 	 * @throws SmartDeviceLinkException
 	 */
 	public void alert(String ttsText, String alertText1,
@@ -1769,14 +2867,14 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	}
 	
 	/**
-	 * Sends an Alert RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 * Sends an Alert RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 * 
-	 * @param ttsChunks
-	 * @param alertText1
-	 * @param alertText2
-	 * @param playTone
-	 * @param duration
-	 * @param correlationID
+	 * @param ttsChunks -A list of text/phonemes to speak in the form of ttsChunks.
+	 * @param alertText1 -The first line of the alert text field.
+	 * @param alertText2 -The second line of the alert text field.
+	 * @param playTone -Defines if tone should be played.
+	 * @param duration -Timeout in milliseconds.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse
 	 * @throws SmartDeviceLinkException
 	 */
 	public void alert(Vector<TTSChunk> ttsChunks,
@@ -1790,11 +2888,11 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	}
 	
 	/**
-	 * Sends an Alert RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 * Sends an Alert RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 * 
-	 * @param ttsText
-	 * @param playTone
-	 * @param correlationID
+	 * @param ttsText -The text to speech message in the form of a string.
+	 * @param playTone -Defines if tone should be played.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse
 	 * @throws SmartDeviceLinkException
 	 */
 	public void alert(String ttsText, Boolean playTone,
@@ -1804,11 +2902,11 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	}
 	
 	/**
-	 * Sends an Alert RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 * Sends an Alert RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 * 
-	 * @param chunks
-	 * @param playTone
-	 * @param correlationID
+	 * @param chunks -A list of text/phonemes to speak in the form of ttsChunks.
+	 * @param playTone -Defines if tone should be played.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse
 	 * @throws SmartDeviceLinkException
 	 */
 	public void alert(Vector<TTSChunk> chunks, Boolean playTone,
@@ -1818,13 +2916,13 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	}
 	
 	/**
-	 * Sends an Alert RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 * Sends an Alert RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 * 
-	 * @param alertText1
-	 * @param alertText2
-	 * @param playTone
-	 * @param duration
-	 * @param correlationID
+	 * @param alertText1 -The first line of the alert text field.
+	 * @param alertText2 -The second line of the alert text field.
+	 * @param playTone -Defines if tone should be played.
+	 * @param duration -Timeout in milliseconds.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse
 	 * @throws SmartDeviceLinkException
 	 */
 	public void alert(String alertText1, String alertText2,
@@ -1835,7 +2933,7 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	}
 	
 	/**
-	 * Sends a CreateInteractionChoiceSet RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 * Sends a CreateInteractionChoiceSet RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 * 
 	 * @param choiceSet
 	 * @param interactionChoiceSetID
@@ -1853,10 +2951,10 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	}
 	
 	/**
-	 * Sends a DeleteCommand RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 * Sends a DeleteCommand RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 * 
-	 * @param commandID
-	 * @param correlationID
+	 * @param commandID -ID of the command(s) to delete.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse
 	 * @throws SmartDeviceLinkException
 	 */
 	public void deleteCommand(Integer commandID,
@@ -1868,10 +2966,10 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	}
 	
 	/**
-	 * Sends a DeleteInteractionChoiceSet RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 * Sends a DeleteInteractionChoiceSet RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 * 
-	 * @param interactionChoiceSetID
-	 * @param correlationID
+	 * @param interactionChoiceSetID -ID of the interaction choice set to delete.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse
 	 * @throws SmartDeviceLinkException
 	 */
 	public void deleteInteractionChoiceSet(
@@ -1885,10 +2983,10 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	}
 	
 	/**
-	 * Sends a DeleteSubMenu RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 * Sends a DeleteSubMenu RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 * 
-	 * @param menuID
-	 * @param correlationID
+	 * @param menuID -The menuID of the submenu to delete.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse
 	 * @throws SmartDeviceLinkException
 	 */
 	public void deleteSubMenu(Integer menuID,
@@ -1899,13 +2997,124 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 		sendRPCRequest(msg);
 	}
 	
+	
+	
+	/*Begin V1 Enhanced helper*/
+	
 	/**
-	 * Sends a PerformInteraction RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 * Sends a PerformInteraction RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 * 
-	 * @param initPrompt
-	 * @param displayText
-	 * @param interactionChoiceSetID
-	 * @param correlationID
+	 * @param initPrompt -Intial prompt spoken to the user at the start of an interaction.      	
+	 * @param displayText -Text to be displayed first.
+	 * @param interactionChoiceSetID -Interaction choice set IDs to use with an interaction.
+	 * @param vrHelp -Suggested VR Help Items to display on-screen during Perform Interaction.      	
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
+	 * @throws SmartDeviceLinkException
+	 */
+	public void performInteraction(String initPrompt,
+			String displayText, Integer interactionChoiceSetID, Vector<VrHelpItem> vrHelp,
+			Integer correlationID) throws SmartDeviceLinkException {
+		
+		PerformInteraction msg = RPCRequestFactory.buildPerformInteraction(initPrompt,
+				displayText, interactionChoiceSetID, vrHelp, correlationID);
+		
+		sendRPCRequest(msg);
+	}
+	
+	/**
+	 * Sends a PerformInteraction RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param initPrompt -Intial prompt spoken to the user at the start of an interaction.      	
+	 * @param displayText -Text to be displayed first.
+	 * @param interactionChoiceSetID -Interaction choice set IDs to use with an interaction.
+	 * @param helpPrompt -Help text that is spoken when a user speaks "help" during the interaction.
+	 * @param timeoutPrompt -Timeout text that is spoken when a VR interaction times out.
+	 * @param interactionMode - The method in which the user is notified and uses the interaction (Manual,VR,Both).
+	 * @param timeout -Timeout in milliseconds.
+	 * @param vrHelp -Suggested VR Help Items to display on-screen during Perform Interaction.      	
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
+	 * @throws SmartDeviceLinkException
+	 */
+	public void performInteraction(String initPrompt,
+			String displayText, Integer interactionChoiceSetID,
+			String helpPrompt, String timeoutPrompt,
+			InteractionMode interactionMode, Integer timeout, Vector<VrHelpItem> vrHelp,
+			Integer correlationID) throws SmartDeviceLinkException {
+		
+		PerformInteraction msg = RPCRequestFactory.buildPerformInteraction(
+				initPrompt, displayText, interactionChoiceSetID,
+				helpPrompt, timeoutPrompt, interactionMode, 
+				timeout, vrHelp, correlationID);
+		
+		sendRPCRequest(msg);
+	}
+	
+	/**
+	 * Sends a PerformInteraction RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param initPrompt -Intial prompt spoken to the user at the start of an interaction.      	
+	 * @param displayText -Text to be displayed first.
+	 * @param interactionChoiceSetIDList -A list of interaction choice set IDs to use with an interaction.
+	 * @param helpPrompt -Help text that is spoken when a user speaks "help" during the interaction.
+	 * @param timeoutPrompt -Timeout text that is spoken when a VR interaction times out.
+	 * @param interactionMode - The method in which the user is notified and uses the interaction (Manual,VR,Both).
+	 * @param timeout -Timeout in milliseconds.
+	 * @param vrHelp -Suggested VR Help Items to display on-screen during Perform Interaction.      	
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
+	 * @throws SmartDeviceLinkException
+	 */
+	public void performInteraction(String initPrompt,
+			String displayText, Vector<Integer> interactionChoiceSetIDList,
+			String helpPrompt, String timeoutPrompt,
+			InteractionMode interactionMode, Integer timeout, Vector<VrHelpItem> vrHelp,
+			Integer correlationID) throws SmartDeviceLinkException {
+		
+		PerformInteraction msg = RPCRequestFactory.buildPerformInteraction(initPrompt,
+				displayText, interactionChoiceSetIDList,
+				helpPrompt, timeoutPrompt, interactionMode, timeout, vrHelp,
+				correlationID);
+
+		sendRPCRequest(msg);
+	}
+	
+	/**
+	 * Sends a PerformInteraction RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param initChunks -A list of text/phonemes to speak for the initial prompt in the form of ttsChunks.
+	 * @param displayText -Text to be displayed first.
+	 * @param interactionChoiceSetIDList -A list of interaction choice set IDs to use with an interaction.
+	 * @param helpChunks -A list of text/phonemes to speak for the help text that is spoken when a user speaks "help" during the interaction.
+	 * @param timeoutChunks A list of text/phonems to speak for the timeout text that is spoken when a VR interaction times out.
+	 * @param interactionMode - The method in which the user is notified and uses the interaction (Manual,VR,Both).
+	 * @param timeout -Timeout in milliseconds.
+	 * @param vrHelp -Suggested VR Help Items to display on-screen during Perform Interaction.      	
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
+	 * @throws SmartDeviceLinkException
+	 */
+	public void performInteraction(
+			Vector<TTSChunk> initChunks, String displayText,
+			Vector<Integer> interactionChoiceSetIDList,
+			Vector<TTSChunk> helpChunks, Vector<TTSChunk> timeoutChunks,
+			InteractionMode interactionMode, Integer timeout, Vector<VrHelpItem> vrHelp,
+			Integer correlationID) throws SmartDeviceLinkException {
+		
+		PerformInteraction msg = RPCRequestFactory.buildPerformInteraction(
+				initChunks, displayText, interactionChoiceSetIDList,
+				helpChunks, timeoutChunks, interactionMode, timeout,vrHelp,
+				correlationID);
+		
+		sendRPCRequest(msg);
+	}
+	
+	/*End V1 Enhanced*/
+	
+	/**
+	 * Sends a PerformInteraction RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param initPrompt -Intial prompt spoken to the user at the start of an interaction.      	
+	 * @param displayText -Text to be displayed first.
+	 * @param interactionChoiceSetID -Interaction choice set IDs to use with an interaction.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
 	 * @throws SmartDeviceLinkException
 	 */
 	public void performInteraction(String initPrompt,
@@ -1919,12 +3128,16 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	}
 	
 	/**
-	 * Sends a PerformInteraction RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 * Sends a PerformInteraction RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 * 
-	 * @param initPrompt
-	 * @param displayText
-	 * @param interactionChoiceSetID
-	 * @param correlationID
+	 * @param initPrompt -Intial prompt spoken to the user at the start of an interaction.      	
+	 * @param displayText -Text to be displayed first.
+	 * @param interactionChoiceSetID -Interaction choice set IDs to use with an interaction.
+	 * @param helpPrompt -Help text that is spoken when a user speaks "help" during the interaction. 
+	 * @param timeoutPrompt -Timeout text that is spoken when a VR interaction times out.
+	 * @param interactionMode - The method in which the user is notified and uses the interaction (Manual,VR,Both).
+	 * @param timeout -Timeout in milliseconds.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
 	 * @throws SmartDeviceLinkException
 	 */
 	public void performInteraction(String initPrompt,
@@ -1942,16 +3155,16 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	}
 	
 	/**
-	 * Sends a PerformInteraction RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 * Sends a PerformInteraction RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 * 
-	 * @param initPrompt
-	 * @param displayText
-	 * @param interactionChoiceSetIDList
-	 * @param helpPrompt
-	 * @param timeoutPrompt
-	 * @param interactionMode
-	 * @param timeout
-	 * @param correlationID
+	 * @param initPrompt -Intial prompt spoken to the user at the start of an interaction.      	
+	 * @param displayText -Text to be displayed first.
+	 * @param interactionChoiceSetIDList -A list of interaction choice set IDs to use with an interaction.
+	 * @param helpPrompt -Help text that is spoken when a user speaks "help" during the interaction. 
+	 * @param timeoutPrompt -Timeout text that is spoken when a VR interaction times out.
+	 * @param interactionMode - The method in which the user is notified and uses the interaction (Manual,VR,Both).
+	 * @param timeout -Timeout in milliseconds.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
 	 * @throws SmartDeviceLinkException
 	 */
 	public void performInteraction(String initPrompt,
@@ -1969,16 +3182,16 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	}
 	
 	/**
-	 * Sends a PerformInteraction RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 * Sends a PerformInteraction RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 * 
-	 * @param initChunks
-	 * @param displayText
-	 * @param interactionChoiceSetIDList
-	 * @param helpChunks
-	 * @param timeoutChunks
-	 * @param interactionMode
-	 * @param timeout
-	 * @param correlationID
+	 * @param initChunks -A list of text/phonemes to speak for the initial prompt in the form of ttsChunks.
+	 * @param displayText -Text to be displayed first.
+	 * @param interactionChoiceSetIDList -A list of interaction choice set IDs to use with an interaction.
+	 * @param helpChunks -A list of text/phonemes to speak for the help text that is spoken when a user speaks "help" during the interaction.
+	 * @param timeoutChunks A list of text/phonems to speak for the timeout text that is spoken when a VR interaction times out.
+	 * @param interactionMode - The method in which the user is notified and uses the interaction (Manual,VR,Both).
+	 * @param timeout -Timeout in milliseconds.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
 	 * @throws SmartDeviceLinkException
 	 */
 	public void performInteraction(
@@ -1999,20 +3212,65 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	// Protected registerAppInterface used to ensure only non-ALM applications call
 	// reqisterAppInterface
 	protected void registerAppInterfacePrivate(
-			SyncMsgVersion SyncMsgVersion, String appName, String ngnMediaScreenAppName,
-			Vector<String> vrSynonyms, Boolean isMediaApp, Language languageDesired, 
-			String autoActivateID, Integer correlationID) 
+			smartdevicelinkMsgVersion smartDeviceLinkMsgVersion, String appName, Vector<TTSChunk> ttsName,
+			String ngnMediaScreenAppName, Vector<String> vrSynonyms, Boolean isMediaApp, 
+			Language languageDesired, Language hmiDisplayLanguageDesired, Vector<AppHMIType> appType,
+			String appID, String autoActivateID, Integer correlationID) 
 			throws SmartDeviceLinkException {
 		
 		RegisterAppInterface msg = RPCRequestFactory.buildRegisterAppInterface(
-				SyncMsgVersion, appName, ngnMediaScreenAppName, vrSynonyms, isMediaApp, 
-				languageDesired, autoActivateID, correlationID);
+				smartDeviceLinkMsgVersion, appName, ttsName, ngnMediaScreenAppName, vrSynonyms, isMediaApp, 
+				languageDesired, hmiDisplayLanguageDesired, appType, appID, correlationID);
 
 		sendRPCRequestPrivate(msg);
 	}
 	
+	/*Begin V1 Enhanced helper function*/
+
 	/**
-	 * Sends a SetGlobalProperties RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 * Sends a SetGlobalProperties RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param helpPrompt
+	 * @param timeoutPrompt
+	 * @param vrHelpTitle
+	 * @param vrHelp
+	 * @param correlationID
+	 * @throws SmartDeviceLinkException
+	 */
+	public void setGlobalProperties(
+			String helpPrompt, String timeoutPrompt, String vrHelpTitle, Vector<VrHelpItem> vrHelp, Integer correlationID) 
+		throws SmartDeviceLinkException {
+		
+		SetGlobalProperties req = RPCRequestFactory.buildSetGlobalProperties(helpPrompt, 
+				timeoutPrompt, vrHelpTitle, vrHelp, correlationID);
+		
+		sendRPCRequest(req);
+	}
+	
+	/**
+	 * Sends a SetGlobalProperties RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param helpChunks
+	 * @param timeoutChunks
+	 * @param vrHelpTitle
+	 * @param vrHelp
+	 * @param correlationID
+	 * @throws SmartDeviceLinkException
+	 */
+	public void setGlobalProperties(
+			Vector<TTSChunk> helpChunks, Vector<TTSChunk> timeoutChunks, String vrHelpTitle, Vector<VrHelpItem> vrHelp,
+			Integer correlationID) throws SmartDeviceLinkException {
+		
+		SetGlobalProperties req = RPCRequestFactory.buildSetGlobalProperties(
+				helpChunks, timeoutChunks, vrHelpTitle, vrHelp, correlationID);
+
+		sendRPCRequest(req);
+	}
+
+	/*End V1 Enhanced helper function*/	
+	
+	/**
+	 * Sends a SetGlobalProperties RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 * 
 	 * @param helpPrompt
 	 * @param timeoutPrompt
@@ -2030,7 +3288,7 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	}
 	
 	/**
-	 * Sends a SetGlobalProperties RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 * Sends a SetGlobalProperties RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 * 
 	 * @param helpChunks
 	 * @param timeoutChunks
@@ -2060,7 +3318,7 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	                                                        
 	
 	/**
-	 * Sends a SetMediaClockTimer RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 * Sends a SetMediaClockTimer RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 * 
 	 * @param hours
 	 * @param minutes
@@ -2122,17 +3380,71 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 
 		sendRPCRequest(msg);
 	}
+		
+	/*Begin V1 Enhanced helper*/
+	/**
+	 * Sends a Show RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param mainText1 -Text displayed in a single or upper display line.
+	 * @param mainText2 -Text displayed on the second display line.
+	 * @param mainText3 -Text displayed on the second "page" first display line.
+	 * @param mainText4 -Text displayed on the second "page" second display line.
+	 * @param statusBar
+	 * @param mediaClock -Text value for MediaClock field.
+	 * @param mediaTrack -Text displayed in the track field.
+	 * @param graphic -Image struct determining whether static or dynamic image to display in app.
+	 * @param softButtons -App defined SoftButtons.
+	 * @param customPresets -App labeled on-screen presets.
+	 * @param alignment -Specifies how mainText1 and mainText2s texts should be aligned on display.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
+	 * @throws SmartDeviceLinkException
+	 */
+	public void show(String mainText1, String mainText2, String mainText3, String mainText4,
+			String statusBar, String mediaClock, String mediaTrack,
+			Image graphic, Vector<SoftButton> softButtons, Vector <String> customPresets,
+			TextAlignment alignment, Integer correlationID) 
+			throws SmartDeviceLinkException {
+		
+		Show msg = RPCRequestFactory.buildShow(mainText1, mainText2, mainText3, mainText4,
+				statusBar, mediaClock, mediaTrack, graphic, softButtons, customPresets,
+				alignment, correlationID);
+
+		sendRPCRequest(msg);
+	}
 	
 	/**
-	 * Sends a Show RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 * Sends a Show RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 * 
-	 * @param mainText1
-	 * @param mainText2
+	 * @param mainText1 -Text displayed in a single or upper display line.
+	 * @param mainText2 -Text displayed on the second display line.
+	 * @param mainText3 -Text displayed on the second "page" first display line.
+	 * @param mainText4 -Text displayed on the second "page" second display line.
+	 * @param graphic -Image struct determining whether static or dynamic image to display in app.
+	 * @param softButtons -App defined SoftButtons.
+	 * @param customPresets -App labeled on-screen presets.
+	 * @param alignment -Specifies how mainText1 and mainText2s texts should be aligned on display.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
+	 * @throws SmartDeviceLinkException
+	 */
+	public void show(String mainText1, String mainText2, String mainText3, String mainText4,
+			Image graphic, Vector<SoftButton> softButtons, Vector <String> customPresets,
+			TextAlignment alignment, Integer correlationID) 
+			throws SmartDeviceLinkException {
+		
+		show(mainText1, mainText2, mainText3, mainText4, null, null, null, graphic, softButtons, customPresets, alignment, correlationID);
+	}		
+	/*End V1 Enhanced helper*/
+	
+	/**
+	 * Sends a Show RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param mainText1 -Text displayed in a single or upper display line.
+	 * @param mainText2 -Text displayed on the second display line.
 	 * @param statusBar
-	 * @param mediaClock
-	 * @param mediaTrack
-	 * @param alignment
-	 * @param correlationID
+	 * @param mediaClock -Text value for MediaClock field.
+	 * @param mediaTrack -Text displayed in the track field.
+	 * @param alignment -Specifies how mainText1 and mainText2s texts should be aligned on display.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
 	 * @throws SmartDeviceLinkException
 	 */
 	public void show(String mainText1, String mainText2,
@@ -2148,12 +3460,12 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	}
 	
 	/**
-	 * Sends a Show RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 * Sends a Show RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 * 
-	 * @param mainText1
-	 * @param mainText2
-	 * @param alignment
-	 * @param correlationID
+	 * @param mainText1 -Text displayed in a single or upper display line.
+	 * @param mainText2 -Text displayed on the second display line.
+	 * @param alignment -Specifies how mainText1 and mainText2s texts should be aligned on display.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
 	 * @throws SmartDeviceLinkException
 	 */
 	public void show(String mainText1, String mainText2,
@@ -2164,10 +3476,10 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	}
 	
 	/**
-	 * Sends a Speak RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 * Sends a Speak RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 * 
-	 * @param ttsText
-	 * @param correlationID
+	 * @param ttsText -The text to speech message in the form of a string.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
 	 * @throws SmartDeviceLinkException
 	 */
 	public void speak(String ttsText, Integer correlationID) 
@@ -2180,10 +3492,10 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	}
 	
 	/**
-	 * Sends a Speak RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 * Sends a Speak RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 * 
-	 * @param ttsChunks
-	 * @param correlationID
+	 * @param ttsChunks -Text/phonemes to speak in the form of ttsChunks.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
 	 * @throws SmartDeviceLinkException
 	 */
 	public void speak(Vector<TTSChunk> ttsChunks,
@@ -2195,10 +3507,10 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	}
 	
 	/**
-	 * Sends a SubscribeButton RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 * Sends a SubscribeButton RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 * 
-	 * @param buttonName
-	 * @param correlationID
+	 * @param buttonName -Name of the button to subscribe.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
 	 * @throws SmartDeviceLinkException
 	 */
 	public void subscribeButton(ButtonName buttonName,
@@ -2222,10 +3534,10 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 	}
 	
 	/**
-	 * Sends an UnsubscribeButton RPCRequest to SmartDeviceLink. Responses are captured through callback on IProxyListener.
+	 * Sends an UnsubscribeButton RPCRequest to SMARTDEVICELINK. Responses are captured through callback on IProxyListener.
 	 * 
-	 * @param buttonName
-	 * @param correlationID
+	 * @param buttonName -Name of the button to unsubscribe.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
 	 * @throws SmartDeviceLinkException
 	 */
 	public void unsubscribeButton(ButtonName buttonName, 
@@ -2258,13 +3570,362 @@ public abstract class SmartDeviceLinkProxyBase<proxyListenerType extends IProxyL
 		return returnChoice;
 	}
 	
-	/******************** END Public Helper Methods *************************/
+	/**
+	 * Starts audio pass thru session. Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param initialPrompt -SMARTDEVICELINK will speak this prompt before opening the audio pass thru session.
+	 * @param audioPassThruDisplayText1 -First line of text displayed during audio capture.
+	 * @param audioPassThruDisplayText2 -Second line of text displayed during audio capture.
+	 * @param samplingRate -Allowable values of 8 khz or 16 or 22 or 44 khz.
+	 * @param maxDuration -The maximum duration of audio recording in milliseconds.
+	 * @param bitsPerSample -Specifies the quality the audio is recorded. Currently 8 bit or 16 bit.
+	 * @param audioType -Specifies the type of audio data being requested.
+	 * @param muteAudio -Defines if the current audio source should be muted during the APT session.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
+	 * @throws SmartDeviceLinkException 
+	 */
+	public void performaudiopassthru(String initialPrompt, String audioPassThruDisplayText1, String audioPassThruDisplayText2,
+			  SamplingRate samplingRate, Integer maxDuration, BitsPerSample bitsPerSample,
+			  AudioType audioType, Boolean muteAudio, Integer correlationID) throws SmartDeviceLinkException {		
 
+		PerformAudioPassThru msg = RPCRequestFactory.BuildPerformAudioPassThru(initialPrompt, audioPassThruDisplayText1, audioPassThruDisplayText2, 
+																				samplingRate, maxDuration, bitsPerSample, audioType, muteAudio, correlationID);
+		sendRPCRequest(msg);
+	}
+
+	/**
+	 * Ends audio pass thru session. Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param correlationID
+	 * @throws SmartDeviceLinkException 
+	 */
+	public void endaudiopassthru(Integer correlationID) throws SmartDeviceLinkException 
+	{
+		EndAudioPassThru msg = RPCRequestFactory.BuildEndAudioPassThru(correlationID);		
+		sendRPCRequest(msg);
+	}
+	
+	/**
+	 *     Subscribes for specific published data items.  The data will be only sent if it has changed.
+	 *     Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param gps -Subscribes to GPS data.
+	 * @param speed -Subscribes to vehicle speed data in kilometers per hour.
+	 * @param rpm -Subscribes to number of revolutions per minute of the engine.
+	 * @param fuelLevel -Subscribes to fuel level in the tank (percentage).
+	 * @param fuelLevel_State -Subscribes to fuel level state.
+	 * @param instantFuelConsumption -Subscribes to instantaneous fuel consumption in microlitres.
+	 * @param externalTemperature -Subscribes to the external temperature in degrees celsius.
+	 * @param prndl -Subscribes to PRNDL data that houses the selected gear.
+	 * @param tirePressure -Subscribes to the TireStatus data containing status and pressure of tires. 
+	 * @param odometer -Subscribes to Odometer data in km.
+	 * @param beltStatus -Subscribes to status of the seat belts.
+	 * @param bodyInformation -Subscribes to body information including power modes.
+	 * @param deviceStatus -Subscribes to device status including signal and battery strength.
+	 * @param driverBraking -Subscribes to the status of the brake pedal.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
+	 * @throws SmartDeviceLinkException
+	*/
+	public void subscribevehicledata(boolean gps, boolean speed, boolean rpm, boolean fuelLevel, boolean fuelLevel_State,
+									 boolean instantFuelConsumption, boolean externalTemperature, boolean prndl, boolean tirePressure,						
+									 boolean odometer, boolean beltStatus, boolean bodyInformation, boolean deviceStatus,
+									 boolean driverBraking, Integer correlationID) throws SmartDeviceLinkException
+	{
+		SubscribeVehicleData msg = RPCRequestFactory.BuildSubscribeVehicleData(gps, speed, rpm, fuelLevel, fuelLevel_State, instantFuelConsumption, externalTemperature, prndl, tirePressure, 
+																				odometer, beltStatus, bodyInformation, deviceStatus, driverBraking, correlationID);
+		
+		sendRPCRequest(msg);
+	}
+	
+	/**
+	 *     Unsubscribes for specific published data items.
+	 *     Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param gps -Unsubscribes to GPS data.
+	 * @param speed -Unsubscribes to vehicle speed data in kilometers per hour.
+	 * @param rpm -Unsubscribes to number of revolutions per minute of the engine.
+	 * @param fuelLevel -Unsubscribes to fuel level in the tank (percentage).
+	 * @param fuelLevel_State -Unsubscribes to fuel level state.
+	 * @param instantFuelConsumption -Unsubscribes to instantaneous fuel consumption in microlitres.
+	 * @param externalTemperature -Unsubscribes to the external temperature in degrees celsius.
+	 * @param prndl -Unsubscribes to PRNDL data that houses the selected gear.
+	 * @param tirePressure -Unsubscribes to the TireStatus data containing status and pressure of tires. 
+	 * @param odometer -Unsubscribes to Odometer data in km.
+	 * @param beltStatus -Unsubscribes to status of the seat belts.
+	 * @param bodyInformation -Unsubscribes to body information including power modes.
+	 * @param deviceStatus -Unsubscribes to device status including signal and battery strength.
+	 * @param driverBraking -Unsubscribes to the status of the brake pedal.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
+	 * @throws SmartDeviceLinkException
+	*/
+
+	public void unsubscribevehicledata(boolean gps, boolean speed, boolean rpm, boolean fuelLevel, boolean fuelLevel_State,
+			 						   boolean instantFuelConsumption, boolean externalTemperature, boolean prndl, boolean tirePressure,
+			 						   boolean odometer, boolean beltStatus, boolean bodyInformation, boolean deviceStatus,
+			 						   boolean driverBraking, Integer correlationID) throws SmartDeviceLinkException
+	{
+		UnsubscribeVehicleData msg = RPCRequestFactory.BuildUnsubscribeVehicleData(gps, speed, rpm, fuelLevel, fuelLevel_State, instantFuelConsumption, externalTemperature, prndl, tirePressure,
+																					odometer, beltStatus, bodyInformation, deviceStatus, driverBraking, correlationID);
+		sendRPCRequest(msg);
+	}
+
+
+	/**
+	 *     Performs a Non periodic vehicle data read request.
+	 *     Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param gps -Performs an ad-hoc request for GPS data.
+	 * @param speed -Performs an ad-hoc request for vehicle speed data in kilometers per hour.
+	 * @param rpm -Performs an ad-hoc request for number of revolutions per minute of the engine.
+	 * @param fuelLevel -Performs an ad-hoc request for fuel level in the tank (percentage).
+	 * @param fuelLevel_State -Performs an ad-hoc request for fuel level state.
+	 * @param instantFuelConsumption -Performs an ad-hoc request for instantaneous fuel consumption in microlitres.
+	 * @param externalTemperature -Performs an ad-hoc request for the external temperature in degrees celsius.
+	 * @param vin -Performs an ad-hoc request for the Vehicle identification number
+	 * @param prndl -Performs an ad-hoc request for PRNDL data that houses the selected gear.
+	 * @param tirePressure -Performs an ad-hoc request for the TireStatus data containing status and pressure of tires. 
+	 * @param odometer -Performs an ad-hoc request for Odometer data in km.
+	 * @param beltStatus -Performs an ad-hoc request for status of the seat belts.
+	 * @param bodyInformation -Performs an ad-hoc request for  body information including power modes.
+	 * @param deviceStatus -Performs an ad-hoc request for device status including signal and battery strength.
+	 * @param driverBraking -Performs an ad-hoc request for the status of the brake pedal.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
+	 * @throws SmartDeviceLinkException
+	*/
+	public void getvehicledata(boolean gps, boolean speed, boolean rpm, boolean fuelLevel, boolean fuelLevel_State,
+			 				   boolean instantFuelConsumption, boolean externalTemperature, boolean vin, boolean prndl, boolean tirePressure,
+			 				   boolean odometer, boolean beltStatus, boolean bodyInformation, boolean deviceStatus,
+			 				   boolean driverBraking, Integer correlationID) throws SmartDeviceLinkException
+	{
+	
+		GetVehicleData msg = RPCRequestFactory.BuildGetVehicleData(gps, speed, rpm, fuelLevel, fuelLevel_State, instantFuelConsumption, externalTemperature, vin, prndl, tirePressure, odometer,
+																   beltStatus, bodyInformation, deviceStatus, driverBraking, correlationID);
+		sendRPCRequest(msg);
+	}
+
+
+	/**
+	 *     Non periodic vehicle data read request
+	 *     Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param ecuName -Name of ECU.
+	 * @param didLocation -Raw data from vehicle data DID location(s)
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
+	 * @throws SmartDeviceLinkException
+	*/
+
+	public void readdid(Integer ecuName, Vector<Integer> didLocation, Integer correlationID) throws SmartDeviceLinkException
+	{
+		ReadDID msg = RPCRequestFactory.BuildReadDID(ecuName, didLocation, correlationID);		
+		sendRPCRequest(msg);		
+	}
+
+
+	/**
+	 *     Vehicle module diagnostic trouble code request.
+	 *     Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param ecuName -Name of ECU.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
+	 * @throws SmartDeviceLinkException
+	*/	
+	public void getdtcs(Integer ecuName, Integer correlationID) throws SmartDeviceLinkException
+	{
+		GetDTCs msg = RPCRequestFactory.BuildGetDTCs(ecuName, correlationID);		
+		sendRPCRequest(msg);
+	}
+	
+	/**
+	 *     Creates a full screen overlay containing a large block of formatted text that can be scrolled with up to 8 SoftButtons defined.
+	 *     Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param scrollableMessageBody -Body of text that can include newlines and tabs.
+	 * @param timeout -App defined timeout.  Indicates how long of a timeout from the last action.
+	 * @param softButtons -App defined SoftButtons.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
+	 * @throws SmartDeviceLinkException
+	*/		
+	public void scrollablemessage(String scrollableMessageBody, Integer timeout, Vector<SoftButton> softButtons, Integer correlationID) throws SmartDeviceLinkException
+	{
+		ScrollableMessage msg = RPCRequestFactory.BuildScrollableMessage(scrollableMessageBody, timeout, softButtons, correlationID);		
+		sendRPCRequest(msg);
+	}
+
+
+	/**
+	 *     Creates a full screen or pop-up overlay (depending on platform) with a single user controlled slider.
+	 *     Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param numTicks -Number of selectable items on a horizontal axis.
+	 * @param position -Initial position of slider control (cannot exceed numTicks).
+	 * @param sliderHeader -Text header to display.
+	 * @param sliderFooter - Text footer to display (meant to display min/max threshold descriptors).
+	 * @param timeout -App defined timeout.  Indicates how long of a timeout from the last action.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
+	 * @throws SmartDeviceLinkException
+	*/	
+	public void slider(Integer numTicks, Integer position, String sliderHeader, Vector<String> sliderFooter, Integer timeout, Integer correlationID) throws SmartDeviceLinkException
+	{
+		Slider msg = RPCRequestFactory.BuildSlider(numTicks, position, sliderHeader, sliderFooter, timeout, correlationID);		
+		sendRPCRequest(msg);		
+	}
+
+	
+	/**	
+	 *     Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param navigationText1
+	 * @param navigationText2
+	 * @param eta
+	 * @param totalDistance
+	 * @param turnIcon
+	 * @param distanceToManeuver
+	 * @param distanceToManeuverScale
+	 * @param maneuverComplete
+	 * @param softButtons
+	 * @param correlationID
+	 * @throws SmartDeviceLinkException
+	*/		
+	public void showconstanttbt(String navigationText1, String navigationText2, String eta, String totalDistance, Image turnIcon, Double distanceToManeuver,
+			   					Double distanceToManeuverScale, boolean maneuverComplete, Vector <SoftButton> softButtons, Integer correlationID) throws SmartDeviceLinkException
+	{
+		ShowConstantTBT msg = RPCRequestFactory.BuildShowConstantTBT(navigationText1, navigationText2, eta, totalDistance, turnIcon, distanceToManeuver, 
+																					distanceToManeuverScale, maneuverComplete, softButtons, correlationID);
+		sendRPCRequest(msg);
+	}
+
+
+	/**
+	 *     Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param ttsText
+	 * @param softButtons
+	 * @param correlationID
+	 * @throws SmartDeviceLinkException
+	*/
+	public void alertmaneuver(String ttsText, Vector<SoftButton> softButtons, Integer correlationID) throws SmartDeviceLinkException
+	{
+		AlertManeuver msg = RPCRequestFactory.BuildAlertManeuver(ttsText, softButtons, correlationID);
+		sendRPCRequest(msg);
+	}	
+	
+
+	/**
+	 *     Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param turnList
+	 * @param softButtons
+	 * @param correlationID
+	 * @throws SmartDeviceLinkException
+	*/
+	public void updateturnlist(Vector<Turn> turnList, Vector<SoftButton> softButtons, Integer correlationID) throws SmartDeviceLinkException
+	{
+		UpdateTurnList msg = RPCRequestFactory.BuildUpdateTurnList(turnList, softButtons, correlationID);		
+		sendRPCRequest(msg);
+	}
+	
+	/**
+	 *     Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param language
+	 * @param hmiDisplayLanguage
+	 * @param correlationID
+	 * @throws SmartDeviceLinkException
+	*/	
+	public void changeregistration(Language language, Language hmiDisplayLanguage, Integer correlationID) throws SmartDeviceLinkException
+	{
+		ChangeRegistration msg = RPCRequestFactory.BuildChangeRegistration(language, hmiDisplayLanguage, correlationID);
+		sendRPCRequest(msg);
+	}
+	
+
+	/**
+	 *     Used to push a binary data onto the SMARTDEVICELINK module from a mobile device, such as icons and album art.  Not supported on first generation SMARTDEVICELINK vehicles.
+	 *     Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param smartDeviceLinkFileName -File reference name.
+	 * @param fileType -Selected file type.
+	 * @param persistentFile -Indicates if the file is meant to persist between sessions / ignition cycles.
+	 * @param fileData
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
+	 * @throws SmartDeviceLinkException
+	*/	
+	public void putfile(String smartDeviceLinkFileName, FileType fileType, Boolean persistentFile, byte[] fileData, Integer correlationID) throws SmartDeviceLinkException 
+	{
+		PutFile msg = RPCRequestFactory.buildPutFile(smartDeviceLinkFileName, fileType, persistentFile, fileData, correlationID);
+		sendRPCRequest(msg);
+	}
+	
+	/**
+	 *     Used to delete a file resident on the SMARTDEVICELINK module in the app's local cache.  Not supported on first generation SMARTDEVICELINK vehicles.
+	 *     Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param smartDeviceLinkFileName -File reference name.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
+	 * @throws SmartDeviceLinkException
+	*/	
+	public void deletefile(String smartDeviceLinkFileName, Integer correlationID) throws SmartDeviceLinkException 
+	{
+		DeleteFile msg = RPCRequestFactory.buildDeleteFile(smartDeviceLinkFileName, correlationID);
+		sendRPCRequest(msg);
+	}
+	
+	/**
+	 *     Requests the current list of resident filenames for the registered app.  Not supported on first generation SMARTDEVICELINK vehicles.
+	 *     Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
+	 * @throws SmartDeviceLinkException
+	*/	
+	public void listfiles(Integer correlationID) throws SmartDeviceLinkException
+	{
+		ListFiles msg = RPCRequestFactory.buildListFiles(correlationID);
+		sendRPCRequest(msg);
+	}
+
+	/**
+	 *     Used to set existing local file on SMARTDEVICELINK as the app's icon.  Not supported on first generation SMARTDEVICELINK vehicles.
+	 *     Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param smartDeviceLinkFileName -File reference name.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
+	 * @throws SmartDeviceLinkException
+	*/	
+	public void setappicon(String smartDeviceLinkFileName, Integer correlationID) throws SmartDeviceLinkException 
+	{
+		SetAppIcon msg = RPCRequestFactory.buildSetAppIcon(smartDeviceLinkFileName, correlationID);
+		sendRPCRequest(msg);
+	}
+	
+	/**
+	 *     Set an alternate display layout. If not sent, default screen for given platform will be shown.
+	 *     Responses are captured through callback on IProxyListener.
+	 * 
+	 * @param displayLayout -Predefined or dynamically created screen layout.
+	 * @param correlationID -A unique ID that correlates each RPCRequest and RPCResponse.
+	 * @throws SmartDeviceLinkException
+	*/	
+	public void setdisplaylayout(String displayLayout, Integer correlationID) throws SmartDeviceLinkException
+	{
+		SetDisplayLayout msg = RPCRequestFactory.BuildSetDisplayLayout(displayLayout, correlationID);
+		sendRPCRequest(msg);
+	}
+	
+	/******************** END Public Helper Methods *************************/
+	
+	/**
+	 * Gets type of transport currently used by this SmartDeviceLinkProxy.
+	 * 
+	 * @return One of TransportType enumeration values.
+	 * 
+	 * @see TransportType
+	 */
 	public TransportType getCurrentTransportType() throws IllegalStateException {
-		if (_SmartDeviceLinkConnection == null) {
+		if (_smartDeviceLinkConnection  == null) {
 			throw new IllegalStateException("Incorrect state of SmartDeviceLinkProxyBase: Calling for getCurrentTransportType() while connection is not initialized");
 		}
 			
-		return _SmartDeviceLinkConnection.getCurrentTransportType();
+		return _smartDeviceLinkConnection.getCurrentTransportType();
 	}
+	
 } // end-class

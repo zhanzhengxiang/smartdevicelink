@@ -1,6 +1,3 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
 package com.smartdevicelink.proxy;
 
 import java.util.Hashtable;
@@ -12,6 +9,8 @@ import com.smartdevicelink.marshal.JsonRPCMarshaller;
 import com.smartdevicelink.proxy.constants.Names;
 
 public class RPCStruct {
+	
+	private byte[] _bulkData = null;
 
 	protected Hashtable<String, Object> store = null;
 	
@@ -25,6 +24,7 @@ public class RPCStruct {
 	
 	public RPCStruct(Hashtable<String, Object> hashtable) {
 		store = hashtable;
+		//store = (Hashtable<String, Object>) ObjectCopier.copy(hashtable);
 	}
 	
 	public void deserializeJSON(JSONObject jsonObject) throws JSONException {
@@ -47,8 +47,23 @@ public class RPCStruct {
 		if (version == 2) {
 			String messageType = (String)store.keys().nextElement();
 			Hashtable function = (Hashtable)store.get(messageType);
-			Hashtable hash = (Hashtable)function.get(Names.parameters);
-			return JsonRPCMarshaller.serializeHashtable(hash);
+            Hashtable parameters = (Hashtable)function.get(Names.parameters);
+			return JsonRPCMarshaller.serializeHashtable(parameters);
+			//Hashtable hashToSend = new Hashtable();
+			//hashToSend.put(Names.parameters, parameters);
+			//return JsonRPCMarshaller.serializeHashtable(hashToSend);
 		} else return JsonRPCMarshaller.serializeHashtable(store);
+	}
+
+	public byte[] getBulkData() {
+		return this._bulkData;
+	}
+
+	public void setBulkData(byte[] bulkData) {
+		if (bulkData != null) {
+			this._bulkData = new byte[bulkData.length];
+			System.arraycopy(bulkData, 0, _bulkData, 0, bulkData.length);
+			//this._bulkData = bulkData;
+		}
 	}
 }

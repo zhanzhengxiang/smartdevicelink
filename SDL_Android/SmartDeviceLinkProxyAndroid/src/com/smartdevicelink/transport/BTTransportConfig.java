@@ -1,6 +1,3 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
 package com.smartdevicelink.transport;
 
 /**
@@ -17,6 +14,5 @@ public final class BTTransportConfig extends BaseTransportConfig {
 	 */
 	public TransportType getTransportType() {
 		return TransportType.BLUETOOTH;
-	}
-
+	}	
 }

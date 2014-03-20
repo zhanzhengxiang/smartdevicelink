@@ -1,6 +1,3 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
 package com.smartdevicelink.protocol;
 
 import com.smartdevicelink.util.BitConverter;
@@ -97,6 +94,7 @@ public class BinaryFrameHeader {
 	public void setJsonData(byte[] _jsonData) {
 		this._jsonData = new byte[this._jsonSize];
 		System.arraycopy(_jsonData, 0, this._jsonData, 0, _jsonSize);
+		//this._jsonData = _jsonData;
 	}
 	
 	public byte[] getBulkData() {

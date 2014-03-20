@@ -8,22 +8,27 @@ package com.livio.sdl;
 
 public final class R {
 	public static final class drawable {
-		public static final int ic_launcher = 0x7f020005;
+		public static final int arrow_left = 0x7f020003;
+		public static final int arrow_right = 0x7f020004;
+		public static final int ic_launcher = 0x7f020007;
 	}
 	public static final class id {
-		public static final int iv_rowImage = 0x7f080048;
-		public static final int listView = 0x7f080017;
-		public static final int textview = 0x7f080054;
-		public static final int tv_messageDetail = 0x7f080032;
-		public static final int tv_messageName = 0x7f080030;
-		public static final int tv_rowText = 0x7f080049;
-		public static final int tv_timestamp = 0x7f080031;
+		public static final int ib_moveLeft = 0x7f080018;
+		public static final int ib_moveRight = 0x7f080019;
+		public static final int iv_rowImage = 0x7f08004b;
+		public static final int listView = 0x7f08001a;
+		public static final int textview = 0x7f080017;
+		public static final int tv_messageDetail = 0x7f080035;
+		public static final int tv_messageName = 0x7f080033;
+		public static final int tv_rowText = 0x7f08004c;
+		public static final int tv_timestamp = 0x7f080034;
 	}
 	public static final class layout {
-		public static final int listview = 0x7f030008;
-		public static final int sdl_message_listview_row = 0x7f030010;
-		public static final int simple_listview_with_image = 0x7f030013;
-		public static final int textview = 0x7f030016;
+		public static final int json_flipper_dialog = 0x7f030008;
+		public static final int listview = 0x7f030009;
+		public static final int sdl_message_listview_row = 0x7f030011;
+		public static final int simple_listview_with_image = 0x7f030014;
+		public static final int textview = 0x7f030017;
 	}
 	public static final class string {
 		public static final int add_command_command_name = 0x7f040004;

@@ -24,33 +24,34 @@ public final class R {
         public static final int add=0x7f020000;
         public static final int add_to_favorites=0x7f020001;
         public static final int anchor=0x7f020002;
-        public static final int game_pad=0x7f020003;
-        public static final int ic_close=0x7f020004;
-        public static final int ic_launcher=0x7f020005;
-        public static final int remove=0x7f020006;
-        public static final int remove_from_favorites=0x7f020007;
-        public static final int rocket=0x7f020008;
-        public static final int select_an_image=0x7f020009;
-        public static final int undo=0x7f02000a;
-        public static final int zoom_in=0x7f02000b;
-        public static final int zoom_out=0x7f02000c;
+        public static final int arrow_left=0x7f020003;
+        public static final int arrow_right=0x7f020004;
+        public static final int game_pad=0x7f020005;
+        public static final int ic_close=0x7f020006;
+        public static final int ic_launcher=0x7f020007;
+        public static final int remove=0x7f020008;
+        public static final int remove_from_favorites=0x7f020009;
+        public static final int rocket=0x7f02000a;
+        public static final int select_an_image=0x7f02000b;
+        public static final int undo=0x7f02000c;
+        public static final int zoom_in=0x7f02000d;
+        public static final int zoom_out=0x7f02000e;
     }
     public static final class id {
-        public static final int btn_main_sendMessage=0x7f080019;
+        public static final int btn_main_sendMessage=0x7f08001c;
         public static final int but_addItem=0x7f080014;
-        public static final int but_performInteraction_selectChoiceSets=0x7f08001d;
-        public static final int but_scrollableMessage_clear=0x7f08002b;
-        public static final int but_showImage=0x7f080047;
-        public static final int cb_putFile_addAll=0x7f080024;
-        public static final int cb_putFile_isPersistent=0x7f080027;
+        public static final int but_performInteraction_selectChoiceSets=0x7f080020;
+        public static final int but_scrollableMessage_clear=0x7f08002e;
+        public static final int cb_putFile_addAll=0x7f080027;
+        public static final int cb_putFile_isPersistent=0x7f08002a;
         public static final int check_alert_playTone=0x7f08000b;
         public static final int check_enable_image=0x7f080004;
-        public static final int check_performInteraction_timeoutEnabled=0x7f080020;
-        public static final int check_show1=0x7f08003b;
-        public static final int check_show2=0x7f08003d;
-        public static final int check_show3=0x7f08003f;
-        public static final int check_show4=0x7f080041;
-        public static final int check_statusBar=0x7f080045;
+        public static final int check_performInteraction_timeoutEnabled=0x7f080023;
+        public static final int check_show1=0x7f08003e;
+        public static final int check_show2=0x7f080040;
+        public static final int check_show3=0x7f080042;
+        public static final int check_show4=0x7f080044;
+        public static final int check_statusBar=0x7f080048;
         public static final int et_addCommand_commandName=0x7f080001;
         public static final int et_addCommand_voiceRecKeyword=0x7f080002;
         public static final int et_addSubMenu_subMenuName=0x7f080006;
@@ -63,68 +64,73 @@ public final class R {
         public static final int et_choice_vr_text=0x7f080012;
         public static final int et_getDtcs_ecuName=0x7f080016;
         public static final int et_imageName=0x7f080005;
-        public static final int et_ipAddress=0x7f08002e;
-        public static final int et_ipPort=0x7f08002f;
-        public static final int et_mediaClockHours=0x7f080036;
-        public static final int et_mediaClockMins=0x7f080037;
-        public static final int et_mediaClockSecs=0x7f080038;
-        public static final int et_performInteraction_title=0x7f08001b;
-        public static final int et_performInteraction_voicePrompt=0x7f08001c;
-        public static final int et_putFile_imageName=0x7f080026;
-        public static final int et_readDids_didLocation=0x7f080029;
-        public static final int et_readDids_ecuName=0x7f080028;
-        public static final int et_scrollableMessage_text=0x7f08002a;
-        public static final int et_show1=0x7f08003a;
-        public static final int et_show2=0x7f08003c;
-        public static final int et_show3=0x7f08003e;
-        public static final int et_show4=0x7f080040;
-        public static final int et_slider_footer=0x7f08004b;
-        public static final int et_slider_title=0x7f08004a;
-        public static final int et_statusBar=0x7f080046;
-        public static final int et_textToSpeak=0x7f080052;
-        public static final int ib_putFile_selectAnImage=0x7f080025;
-        public static final int iv_rowImage=0x7f080048;
-        public static final int listView=0x7f080017;
-        public static final int list_main_commandList=0x7f08001a;
-        public static final int ll_clock=0x7f080035;
+        public static final int et_ipAddress=0x7f080031;
+        public static final int et_ipPort=0x7f080032;
+        public static final int et_mediaClockHours=0x7f080039;
+        public static final int et_mediaClockMins=0x7f08003a;
+        public static final int et_mediaClockSecs=0x7f08003b;
+        public static final int et_performInteraction_title=0x7f08001e;
+        public static final int et_performInteraction_voicePrompt=0x7f08001f;
+        public static final int et_putFile_imageName=0x7f080029;
+        public static final int et_readDids_didLocation=0x7f08002c;
+        public static final int et_readDids_ecuName=0x7f08002b;
+        public static final int et_scrollableMessage_text=0x7f08002d;
+        public static final int et_show1=0x7f08003d;
+        public static final int et_show2=0x7f08003f;
+        public static final int et_show3=0x7f080041;
+        public static final int et_show4=0x7f080043;
+        public static final int et_show_image=0x7f08004a;
+        public static final int et_slider_footer=0x7f08004e;
+        public static final int et_slider_title=0x7f08004d;
+        public static final int et_statusBar=0x7f080049;
+        public static final int et_textToSpeak=0x7f080055;
+        public static final int ib_moveLeft=0x7f080018;
+        public static final int ib_moveRight=0x7f080019;
+        public static final int ib_putFile_selectAnImage=0x7f080028;
+        public static final int iv_rowImage=0x7f08004b;
+        public static final int listView=0x7f08001a;
+        public static final int list_main_commandList=0x7f08001d;
+        public static final int ll_clock=0x7f080038;
         public static final int lv_choices=0x7f080015;
-        public static final int menu_clear_list=0x7f080058;
-        public static final int menu_connect=0x7f080055;
-        public static final int menu_disconnect=0x7f080056;
-        public static final int menu_help=0x7f080059;
-        public static final int menu_reset=0x7f080057;
+        public static final int menu_clear_list=0x7f08005c;
+        public static final int menu_connect=0x7f080059;
+        public static final int menu_disconnect=0x7f08005a;
+        public static final int menu_help=0x7f08005d;
+        public static final int menu_help_close=0x7f080058;
+        public static final int menu_help_home=0x7f080057;
+        public static final int menu_reset=0x7f08005b;
         public static final int seek_alert_toneDuration=0x7f08000e;
-        public static final int seek_performInteraction_timeoutDuration=0x7f080023;
-        public static final int seek_scrollableMessage_timeout=0x7f08002d;
-        public static final int seek_slider_numOfTicks=0x7f08004d;
-        public static final int seek_slider_startPosition=0x7f08004f;
-        public static final int seek_slider_timeout=0x7f080051;
+        public static final int seek_performInteraction_timeoutDuration=0x7f080026;
+        public static final int seek_scrollableMessage_timeout=0x7f080030;
+        public static final int seek_slider_numOfTicks=0x7f080050;
+        public static final int seek_slider_startPosition=0x7f080052;
+        public static final int seek_slider_timeout=0x7f080054;
         public static final int spin_addCommand_submenus=0x7f080003;
         public static final int spin_changeRegistration_hmiLanguage=0x7f080010;
         public static final int spin_changeRegistration_language=0x7f08000f;
-        public static final int spin_mediaClock_updateMode=0x7f080033;
-        public static final int spin_performInteraction_interactionMode=0x7f08001f;
-        public static final int spin_speechCapabilities=0x7f080053;
-        public static final int spin_textAlignment=0x7f080043;
-        public static final int textview=0x7f080054;
+        public static final int spin_mediaClock_updateMode=0x7f080036;
+        public static final int spin_performInteraction_interactionMode=0x7f080022;
+        public static final int spin_speechCapabilities=0x7f080056;
+        public static final int spin_textAlignment=0x7f080046;
+        public static final int textview=0x7f080017;
         public static final int tv_alert_toneDuration=0x7f08000d;
         public static final int tv_alert_toneDurationHeader=0x7f08000c;
-        public static final int tv_connectionStatus=0x7f080018;
-        public static final int tv_mediaClock_clock=0x7f080034;
-        public static final int tv_messageDetail=0x7f080032;
-        public static final int tv_messageName=0x7f080030;
-        public static final int tv_metadataLines=0x7f080039;
-        public static final int tv_performInteraction_interactionMode=0x7f08001e;
-        public static final int tv_performInteraction_timeoutDuration=0x7f080022;
-        public static final int tv_performInteraction_timeoutTitle=0x7f080021;
-        public static final int tv_rowText=0x7f080049;
-        public static final int tv_scrollableMessage_timeout=0x7f08002c;
-        public static final int tv_slider_numOfTicks=0x7f08004c;
-        public static final int tv_slider_startPosition=0x7f08004e;
-        public static final int tv_slider_timeout=0x7f080050;
-        public static final int tv_statusBar=0x7f080044;
-        public static final int tv_textAlignment=0x7f080042;
-        public static final int tv_timestamp=0x7f080031;
+        public static final int tv_connectionStatus=0x7f08001b;
+        public static final int tv_mediaClock_clock=0x7f080037;
+        public static final int tv_messageDetail=0x7f080035;
+        public static final int tv_messageName=0x7f080033;
+        public static final int tv_metadataLines=0x7f08003c;
+        public static final int tv_performInteraction_interactionMode=0x7f080021;
+        public static final int tv_performInteraction_timeoutDuration=0x7f080025;
+        public static final int tv_performInteraction_timeoutTitle=0x7f080024;
+        public static final int tv_rowText=0x7f08004c;
+        public static final int tv_scrollableMessage_timeout=0x7f08002f;
+        public static final int tv_slider_numOfTicks=0x7f08004f;
+        public static final int tv_slider_startPosition=0x7f080051;
+        public static final int tv_slider_timeout=0x7f080053;
+        public static final int tv_statusBar=0x7f080047;
+        public static final int tv_textAlignment=0x7f080045;
+        public static final int tv_timestamp=0x7f080034;
         public static final int wv_help=0x7f080000;
     }
     public static final class layout {
@@ -136,34 +142,36 @@ public final class R {
         public static final int choice_set_item=0x7f030005;
         public static final int create_choice_interaction_set=0x7f030006;
         public static final int get_dtcs=0x7f030007;
-        public static final int listview=0x7f030008;
-        public static final int main=0x7f030009;
-        public static final int offline_mode=0x7f03000a;
-        public static final int perform_interaction=0x7f03000b;
-        public static final int put_file=0x7f03000c;
-        public static final int read_dids=0x7f03000d;
-        public static final int scrollable_message=0x7f03000e;
-        public static final int sdl_connection=0x7f03000f;
-        public static final int sdl_message_listview_row=0x7f030010;
-        public static final int set_media_clock_timer=0x7f030011;
-        public static final int show=0x7f030012;
-        public static final int simple_listview_with_image=0x7f030013;
-        public static final int slider=0x7f030014;
-        public static final int speak=0x7f030015;
-        public static final int textview=0x7f030016;
+        public static final int json_flipper_dialog=0x7f030008;
+        public static final int listview=0x7f030009;
+        public static final int main=0x7f03000a;
+        public static final int offline_mode=0x7f03000b;
+        public static final int perform_interaction=0x7f03000c;
+        public static final int put_file=0x7f03000d;
+        public static final int read_dids=0x7f03000e;
+        public static final int scrollable_message=0x7f03000f;
+        public static final int sdl_connection=0x7f030010;
+        public static final int sdl_message_listview_row=0x7f030011;
+        public static final int set_media_clock_timer=0x7f030012;
+        public static final int show=0x7f030013;
+        public static final int simple_listview_with_image=0x7f030014;
+        public static final int slider=0x7f030015;
+        public static final int speak=0x7f030016;
+        public static final int textview=0x7f030017;
     }
     public static final class menu {
-        public static final int menu_main=0x7f070000;
+        public static final int menu_help=0x7f070000;
+        public static final int menu_main=0x7f070001;
     }
     public static final class string {
-        public static final int action_settings=0x7f040050;
+        public static final int action_settings=0x7f040052;
         /**      Add Command 
          */
         public static final int add_command_command_name=0x7f040004;
         public static final int add_command_image_type=0x7f040007;
         public static final int add_command_parent_menu=0x7f040006;
         public static final int add_command_vr_keyword=0x7f040005;
-        public static final int add_image=0x7f04004e;
+        public static final int add_image=0x7f040050;
         public static final int alert_duration_ms=0x7f040023;
         public static final int alert_duration_s=0x7f040022;
         public static final int alert_line1=0x7f04001e;
@@ -176,8 +184,8 @@ public final class R {
         public static final int app_name=0x7f040000;
         /**  Button Subscriptions 
          */
-        public static final int button_subscriptions_already_subscribed=0x7f040043;
-        public static final int button_subscriptions_none_subscribed=0x7f040044;
+        public static final int button_subscriptions_already_subscribed=0x7f040045;
+        public static final int button_subscriptions_none_subscribed=0x7f040046;
         public static final int choice_name=0x7f040018;
         public static final int clock=0x7f04002d;
         public static final int clock_hrs=0x7f04002e;
@@ -186,19 +194,19 @@ public final class R {
         public static final int colon=0x7f040031;
         /**  SDL Connection 
          */
-        public static final int connection_status_format=0x7f04003e;
+        public static final int connection_status_format=0x7f040040;
         public static final int did_location=0x7f04000c;
         /**      Get DTCs and Read DIDs 
          */
         public static final int ecu_name=0x7f04000b;
         /**  Function Banks 
          */
-        public static final int function_bank_root_name=0x7f040042;
-        public static final int hello_world=0x7f040051;
+        public static final int function_bank_root_name=0x7f040044;
+        public static final int hello_world=0x7f040053;
         public static final int hmi_language=0x7f04001c;
-        public static final int interaction_list_none_added=0x7f04004b;
-        public static final int ip_address=0x7f04003f;
-        public static final int ip_port=0x7f040040;
+        public static final int interaction_list_none_added=0x7f04004d;
+        public static final int ip_address=0x7f040041;
+        public static final int ip_port=0x7f040042;
         public static final int item_number=0x7f040016;
         /**      Choice Set Item 
          */
@@ -218,6 +226,8 @@ public final class R {
         public static final int menu_connect=0x7f040038;
         public static final int menu_disconnect=0x7f040039;
         public static final int menu_help=0x7f04003c;
+        public static final int menu_help_close=0x7f04003e;
+        public static final int menu_help_home=0x7f04003d;
         public static final int menu_reset=0x7f04003a;
         public static final int metadata_line1=0x7f040025;
         public static final int metadata_line2=0x7f040026;
@@ -238,21 +248,21 @@ public final class R {
         public static final int not_implemented=0x7f040036;
         /**  Offline Mode 
          */
-        public static final int offline_mode_text=0x7f040041;
-        public static final int perform_interaction_mode=0x7f040048;
-        public static final int perform_interaction_select_choice_set=0x7f040047;
-        public static final int perform_interaction_timeout=0x7f040049;
-        public static final int perform_interaction_timeout_enabled=0x7f04004a;
+        public static final int offline_mode_text=0x7f040043;
+        public static final int perform_interaction_mode=0x7f04004a;
+        public static final int perform_interaction_select_choice_set=0x7f040049;
+        public static final int perform_interaction_timeout=0x7f04004b;
+        public static final int perform_interaction_timeout_enabled=0x7f04004c;
         /**  Perform Interaction 
          */
-        public static final int perform_interaction_title=0x7f040045;
-        public static final int perform_interaction_voice_prompt=0x7f040046;
+        public static final int perform_interaction_title=0x7f040047;
+        public static final int perform_interaction_voice_prompt=0x7f040048;
         /**      Dialog Strings 
          */
         public static final int positive_button=0x7f040002;
         /**  Put File 
          */
-        public static final int put_file_persistent_file=0x7f04004c;
+        public static final int put_file_persistent_file=0x7f04004e;
         public static final int scrollable_message_clear=0x7f040014;
         public static final int scrollable_message_hint=0x7f040013;
         /**      Scrollable Message 
@@ -260,9 +270,9 @@ public final class R {
         public static final int scrollable_message_text=0x7f040012;
         /**  Dialog Strings 
          */
-        public static final int sdl_command_dialog_title=0x7f04003d;
+        public static final int sdl_command_dialog_title=0x7f04003f;
         public static final int sdl_disconnected=0x7f040001;
-        public static final int sdl_image_name=0x7f04004d;
+        public static final int sdl_image_name=0x7f04004f;
         public static final int slider_footer=0x7f04000e;
         public static final int slider_start_position=0x7f040010;
         public static final int slider_ticks=0x7f04000f;
@@ -278,7 +288,7 @@ public final class R {
          */
         public static final int text_to_speak=0x7f04001d;
         public static final int timeout=0x7f040011;
-        public static final int title_activity_help=0x7f04004f;
+        public static final int title_activity_help=0x7f040051;
         public static final int units_milliseconds=0x7f040034;
         /**      Unit Suffixes 
          */

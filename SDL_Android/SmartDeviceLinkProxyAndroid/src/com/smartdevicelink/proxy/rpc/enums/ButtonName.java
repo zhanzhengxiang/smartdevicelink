@@ -1,24 +1,121 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
 package com.smartdevicelink.proxy.rpc.enums;
 
+/**
+ * <p>
+ * Defines logical buttons which, on a given SMARTDEVICELINK unit, would correspond to
+ * either physical or soft (touchscreen) buttons. These logical buttons present
+ * a standard functional abstraction which the developer can rely upon,
+ * independent of the SMARTDEVICELINK unit. For example, the developer can rely upon the OK
+ * button having the same meaning to the user across SMARTDEVICELINK platforms.
+ * </p>
+ * <p>
+ * The preset buttons (0-9) can typically be interpreted by the application as
+ * corresponding to some user-configured choices, though the application is free
+ * to interpret these button presses as it sees fit.
+ * </p>
+ * <p>
+ * The application can discover which buttons a given SMARTDEVICELINK unit implements by
+ * interrogating the ButtonCapabilities parameter of the
+ * RegisterAppInterface response.
+ * </p>
+ * 
+ * @since SmartDeviceLink 1.0
+ */
 public enum ButtonName{
-    OK,
-    SEEKLEFT,
-    SEEKRIGHT,
-    TUNEUP,
-    TUNEDOWN,
-    PRESET_0,
-    PRESET_1,
-    PRESET_2,
-    PRESET_3,
-    PRESET_4,
-    PRESET_5,
-    PRESET_6,
-    PRESET_7,
-    PRESET_8,
-    PRESET_9;
+	/**
+	 * Represents the button usually labeled "OK". A typical use of this button
+	 * is for the user to press it to make a selection.
+	 * 
+	 * @since SmartDeviceLink 1.0
+	 */
+	OK,
+	/**
+	 * Represents the seek-left button. A typical use of this button is for the
+	 * user to scroll to the left through menu choices one menu item per press.
+	 * 
+	 * @since SmartDeviceLink 1.0
+	 */
+	SEEKLEFT,
+	/**
+	 * Represents the seek-right button. A typical use of this button is for the
+	 * user to scroll to the right through menu choices one menu item per press.
+	 * 
+	 * @since SmartDeviceLink 1.0
+	 */
+	SEEKRIGHT,
+	/**
+	 * Represents a turn of the tuner knob in the clockwise direction one tick.
+	 * 
+	 * @since SmartDeviceLink 1.0
+	 */
+	TUNEUP,
+	/**
+	 * Represents a turn of the tuner knob in the counter-clockwise direction
+	 * one tick.
+	 * 
+	 * @since SmartDeviceLink 1.0
+	 */
+	TUNEDOWN,
+	/**
+	 * Represents the preset 0 button.
+	 * 
+	 * @since SmartDeviceLink 1.0
+	 */
+	PRESET_0,
+	/**
+	 * Represents the preset 1 button.
+	 * 
+	 * @since SmartDeviceLink 1.0
+	 */
+	PRESET_1,
+	/**
+	 * Represents the preset 2 button.
+	 * 
+	 * @since SmartDeviceLink 1.0
+	 */
+	PRESET_2,
+	/**
+	 * Represents the preset 3 button.
+	 * 
+	 * @since SmartDeviceLink 1.0
+	 */
+	PRESET_3,
+	/**
+	 * Represents the preset 4 button.
+	 * 
+	 * @since SmartDeviceLink 1.0
+	 */
+	PRESET_4,
+	/**
+	 * Represents the preset 5 button.
+	 * 
+	 * @since SmartDeviceLink 1.0
+	 */
+	PRESET_5,
+	/**
+	 * Represents the preset 6 button.
+	 * 
+	 * @since SmartDeviceLink 1.0
+	 */
+	PRESET_6,
+	/**
+	 * Represents the preset 7 button.
+	 * 
+	 * @since SmartDeviceLink 1.0
+	 */
+	PRESET_7,
+	/**
+	 * Represents the preset 8 button.
+	 * 
+	 * @since SmartDeviceLink 1.0
+	 */
+	PRESET_8,
+	/**
+	 * Represents the preset 9 button.
+	 * 
+	 * @since SmartDeviceLink 1.0
+	 */
+	PRESET_9, CUSTOM_BUTTON;
 
     public static ButtonName valueForString(String value) {
         return valueOf(value);

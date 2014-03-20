@@ -1,7 +1,6 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
 package com.smartdevicelink.trace;
+
+// Borrowed from Dave Boll's infamous SmartDeviceLinkLinkRelay.java
 
 public class Mime {
 	

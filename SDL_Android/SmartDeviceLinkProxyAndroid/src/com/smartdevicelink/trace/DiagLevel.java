@@ -1,10 +1,8 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
 package com.smartdevicelink.trace;
 
 import com.smartdevicelink.trace.enums.DetailLevel;
 import com.smartdevicelink.trace.enums.Mod;
+
 
 public class DiagLevel {
 

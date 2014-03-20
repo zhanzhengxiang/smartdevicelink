@@ -1,9 +1,7 @@
-//
-// Copyright (c) 2013 Ford Motor Company
-//
 package com.smartdevicelink.transport;
 
 import android.util.Log;
+
 import com.smartdevicelink.exception.SmartDeviceLinkException;
 import com.smartdevicelink.exception.SmartDeviceLinkExceptionCause;
 
@@ -69,12 +67,12 @@ public class TCPTransport extends SmartDeviceLinkTransport {
     private Socket mSocket = null;
 
     /**
-     * Instance of the input stream. Used to read data from SmartDeviceLinkCore
+     * Instance of the input stream. Used to read data from ApplinkCore
      */
     private InputStream mInputStream = null;
 
     /**
-     * Instance of the output stream. Used to send data to SmartDeviceLinkCore
+     * Instance of the output stream. Used to send data to ApplinkCore
      */
     private OutputStream mOutputStream = null;
 
@@ -124,7 +122,7 @@ public class TCPTransport extends SmartDeviceLinkTransport {
                         bResult = true;
                         logInfo("TCPTransport.sendBytesOverTransport: successfully send data");
                     } catch (IOException e) {
-                        logWarning("TCPTransport.sendBytesOverTransport: error during sending data: " + e.getMessage());
+                        logError("TCPTransport.sendBytesOverTransport: error during sending data: " + e.getMessage());
                         bResult = false;
                     }
                 } else {
@@ -140,7 +138,7 @@ public class TCPTransport extends SmartDeviceLinkTransport {
     }
 
     /**
-     * Tries to open connection to SmartDeviceLinkCore.
+     * Tries to open connection to ApplinkCore.
      * Actual try will be performed only if no actual connection is available
      * @throws SmartDeviceLinkException
      */
@@ -172,7 +170,7 @@ public class TCPTransport extends SmartDeviceLinkTransport {
 
 
     /**
-     * Tries to disconnect from SmartDeviceLinkCore.
+     * Tries to disconnect from ApplinkCore.
      * Actual try will be performed only if connection is available
      */
     @Override
@@ -191,7 +189,7 @@ public class TCPTransport extends SmartDeviceLinkTransport {
     }
 
     /**
-     * Performs actual work related to disconnecting from SmartDeviceLinkCore.
+     * Performs actual work related to disconnecting from ApplinkCore.
      *
      * @param message Message that describes disconnect reason
      * @param exception Some of the possible exceptions that was the reason of disconnecting
@@ -223,7 +221,7 @@ public class TCPTransport extends SmartDeviceLinkTransport {
             }
             mSocket = null;
         } catch (IOException e) {
-            logInfo("TCPTransport.disconnect: Exception during disconnect: " + e.getMessage());
+            logError("TCPTransport.disconnect: Exception during disconnect: " + e.getMessage());
         }
 
         if (exception == null) {
@@ -234,7 +232,7 @@ public class TCPTransport extends SmartDeviceLinkTransport {
         } else {
             // This disconnect was caused by an error, notify the proxy
             // that there was a transport error.
-            logInfo("Disconnect is incorrect. Handling it as error");
+            logError("Disconnect is incorrect. Handling it as error");
             handleTransportError(disconnectMsg, exception);
         }
     }
@@ -243,6 +241,7 @@ public class TCPTransport extends SmartDeviceLinkTransport {
      * Overridden abstract method which returns specific type of this transport.
      *
      * @return Constant value - TransportType.TCP.
+     *
      * @see TransportType
      */
     public TransportType getTransportType() {
@@ -301,7 +300,7 @@ public class TCPTransport extends SmartDeviceLinkTransport {
         }
 
         /**
-         * Tries to connect to the SmartDeviceLink core. Behavior depends autoReconnect configuration param:
+         * Tries to connect to the applink core. Behavior depends autoReconnect configuration param:
          *      a) If autoReconnect is false, then only one connect try will be performed.
          *      b) If autoReconnect is true, then in case of connection error continuous reconnect will be performed
          *          after short delay until connection will be established or retry count will be reached
@@ -328,7 +327,7 @@ public class TCPTransport extends SmartDeviceLinkTransport {
                         mInputStream = mSocket.getInputStream();
 
                     } catch (IOException e) {
-                        logInfo("TCPTransport.connect: Exception during connect stage: " + e.getMessage());
+                        logError("TCPTransport.connect: Exception during connect stage: " + e.getMessage());
                     }
 
                     bConnected = (null != mSocket) && mSocket.isConnected();
@@ -364,7 +363,7 @@ public class TCPTransport extends SmartDeviceLinkTransport {
                     if (isHalted) {
                         logInfo("TCPTransport.run: Connection failed, but thread already halted");
                     } else {
-                        disconnect("Failed to connect to SmartDeviceLink", new SmartDeviceLinkException("Failed to connect to SmartDeviceLink"
+                        disconnect("Failed to connect to SMARTDEVICELINK", new SmartDeviceLinkException("Failed to connect to SMARTDEVICELINK"
                                 , SmartDeviceLinkExceptionCause.SMARTDEVICELINK_CONNECTION_FAILED), true);
                     }
                     break;
@@ -430,10 +429,10 @@ public class TCPTransport extends SmartDeviceLinkTransport {
          */
         private void internalHandleStreamReadError() {
             if(isHalted){
-                logInfo("TCPTransport.run: Exception during reading data, but thread already halted");
+                logError("TCPTransport.run: Exception during reading data, but thread already halted");
             } else {
-                logInfo("TCPTransport.run: Exception during reading data");
-                disconnect("Failed to read data from SmartDeviceLink", new SmartDeviceLinkException("Failed to read data from SmartDeviceLink"
+                logError("TCPTransport.run: Exception during reading data");
+                disconnect("Failed to read data from SMARTDEVICELINK", new SmartDeviceLinkException("Failed to read data from SMARTDEVICELINK"
                         , SmartDeviceLinkExceptionCause.SMARTDEVICELINK_CONNECTION_FAILED), false);
             }
         }
@@ -489,7 +488,7 @@ public class TCPTransport extends SmartDeviceLinkTransport {
         CONNECTING,
 
         /**
-         * TCP transport is connected to SmartDeviceLink core
+         * TCP transport is connected to applink core
          */
         CONNECTED,
 
