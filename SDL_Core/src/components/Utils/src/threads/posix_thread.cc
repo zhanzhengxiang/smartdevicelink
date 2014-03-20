@@ -129,7 +129,11 @@ bool Thread::startWithOptions(const ThreadOptions& options) {
   success = !pthread_create(&thread_handle_, &attributes, threadFunc,
                             delegate_);
   if (success) {
+#ifdef __linux__
     pthread_result = pthread_setname_np(thread_handle_, name_.c_str());
+#elif OS_MACOSX
+    pthread_result = pthread_setname_np(name_.c_str());
+#endif
 #   ifdef __QNXNTO__
     if (pthread_result != EOK) {
       LOG4CXX_INFO(logger_,"Couldn't set pthread name"
