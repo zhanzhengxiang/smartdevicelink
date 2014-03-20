@@ -289,15 +289,22 @@ bool SocketStreamerAdapter::Streamer::send(
                   "Server: SDL\r\n"
                   "Content-Type: video/mp4\r\n\r\n"
                  };
-
+#ifdef OS_MACOSX
+    if (-1 == ::send(new_socket_fd_, hdr, strlen(hdr), SO_NOSIGPIPE)) {
+#else
     if (-1 == ::send(new_socket_fd_, hdr, strlen(hdr), MSG_NOSIGNAL)) {
+#endif
       LOG4CXX_ERROR_EXT(logger, " Unable to send");
       return false;
     }
   }
-
+#ifdef OS_MACOSX
+  if (-1 == ::send(new_socket_fd_, (*msg).data(),
+                   (*msg).data_size(), SO_NOSIGPIPE)) {
+#else
   if (-1 == ::send(new_socket_fd_, (*msg).data(),
                    (*msg).data_size(), MSG_NOSIGNAL)) {
+#endif
     LOG4CXX_ERROR_EXT(logger, " Unable to send");
     return false;
   }
