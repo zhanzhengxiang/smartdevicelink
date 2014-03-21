@@ -113,6 +113,17 @@ pkg_check_modules(GLIB2 REQUIRED glib-2.0)
 add_definitions(${GLIB2_CFLAGS})
 endif()
 
+# Find log4cxx
+if(UNIX)
+    find_package(PkgConfig)
+    pkg_check_modules(LOG4CXX REQUIRED liblog4cxx)
+    include_directories(${LOG4CXX_INCLUDE_DIRS})
+    link_directories(${LOG4CXX_LIBRARY_DIRS})
+elseif(WIN32)
+#   Add finding log4cxx here
+endif(UNIX)
+
+
 # --- Interface generator
 
 find_package(PythonInterp)
