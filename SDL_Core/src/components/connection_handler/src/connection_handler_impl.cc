@@ -90,8 +90,9 @@ void ConnectionHandlerImpl::OnDeviceListUpdated(
   LOG4CXX_INFO(logger_, "ConnectionHandlerImpl::OnDeviceListUpdated()");
 
   bool list_actually_changed = false;
-  for (DeviceListIterator itr = device_list_.begin(); itr != device_list_.end();
-       ++itr) {
+
+  DeviceListIterator itr = device_list_.begin();
+  while (itr != device_list_.end()) {
     if (!DoesDeviceExistInTMList(device_info_list, (*itr).first)) {
       // Device has been removed. Perform all needed actions.
       // 1. Delete all the connections and sessions of this device
@@ -105,11 +106,14 @@ void ConnectionHandlerImpl::OnDeviceListUpdated(
           RemoveConnection((*it).first);
         }
       }
-      device_list_.erase(device_for_remove_handle);
+      itr = device_list_.erase(itr);
       list_actually_changed = true;
       if (connection_handler_observer_) {
         connection_handler_observer_->RemoveDevice(device_for_remove_handle);
       }
+    }
+    else {
+      ++itr;
     }
   }
   for (std::vector<transport_manager::DeviceInfo>::const_iterator it_in =
