@@ -163,11 +163,31 @@ if (stat(hmi_link.c_str(), &sb) == -1) {
   return false;
 }
 
+#ifdef OS_MACOSX
+  // On Mac, use system() to call osascript to start Chrome
+  const char kCommand[] = "osascript -e 'tell application \"Google Chrome\" to open \"%s\"'";
+  char *cmd;
+
+  asprintf(&cmd, kCommand, hmi_link.c_str());
+
+  int ret = system(cmd);
+
+  free(cmd);
+
+  if (ret != 0)
+    LOG4CXX_ERROR(logger, "Error launching HTML5 HMI: is Google Chrome installed?");
+
+  return (ret ? false : true);
+#elif OS_LINUX
+	// On Linux, use Execute() to start the browser
   std::string kBin = kBrowser;
   const char* const kParams[4] = {kBrowserName, kBrowserParams,
       hmi_link.c_str(), NULL};
 
   return Execute(kBin, kParams);
+#else
+#error "Add a way to launch the web HMI on your platform"
+#endif
 }
 #endif  // WEB_HMI
 
