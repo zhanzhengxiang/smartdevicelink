@@ -37,9 +37,6 @@ option(HMI2 "Use Qt HMI" OFF)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
-# --- Check libavahi-common, libavahi-client availability
-find_package(Libavahi)
-
 # Please do not change compiler/linker flags if You do not know how particular
 # flag is handled by CMake
 set(CMAKE_INSTALL_PREFIX .)
@@ -82,6 +79,9 @@ if (BUILD_BT_SUPPORT)
 endif()
 
 if (BUILD_AVAHI_SUPPORT)
+  # --- Check libavahi-common, libavahi-client availability
+  find_package(Libavahi)
+
   add_definitions(-DAVAHI_SUPPORT)
 endif()
 
