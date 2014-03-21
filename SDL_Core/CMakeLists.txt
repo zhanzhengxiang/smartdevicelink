@@ -44,7 +44,7 @@ find_package(Libavahi)
 # flag is handled by CMake
 set(CMAKE_INSTALL_PREFIX .)
 set(ARCHIVE_OUTPUT_DIRECTORY ./bin)
-set(CMAKE_CXX_FLAGS "-g3 -ggdb3 -std=gnu++0x -Werror=return-type -Wuninitialized --coverage")
+set(CMAKE_CXX_FLAGS "-g3 -ggdb3 -std=gnu++0x -Werror=return-type -Wuninitialized")
 set(CMAKE_CXX_FLAGS_RELEASE "-s -O2") #It will be appended to CMAKE_CXX_FLAGS in release
 
 option(EXTENDED_MEDIA_MODE "Turn on and off extended Madia Manager features relates to PulseAudio A2DP and GSteamer" OFF)
