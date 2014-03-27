@@ -1430,22 +1430,19 @@ class CodeGenerator(object):
         u'''const std::map<${namespace}::${enum}::eType, '''
         u'''std::string> &TEnumSchemaItem<${namespace}::${enum}::eType>::'''
         u'''getEnumElementsStringRepresentation() {\n'''
-        u'''  static bool is_initialized = false;\n'''
         u'''  static std::map<${namespace}::${enum}::eType, '''
-        u'''std::string> enum_string_representation;\n'''
+        u'''std::string> enum_string_representation {\n'''
         u'''\n'''
-        u'''  if (false == is_initialized) {\n'''
         u'''${mapping}'''
         u'''\n'''
-        u'''    is_initialized = true;\n'''
-        u'''  }\n'''
+        u'''  };\n'''
         u'''\n'''
         u'''  return enum_string_representation;\n'''
         u'''}\n''')
 
     _enum_to_str_mapping_template = string.Template(
-        u'''enum_string_representation.insert(std::make_pair(${namespace}::'''
-        u'''${enum_name}::${enum_value}, "${string}"));''')
+        u'''{${namespace}::'''
+        u'''${enum_name}::${enum_value}, "${string}"},''')
 
     _struct_schema_item_template = string.Template(
         u'''utils::SharedPtr<ISchemaItem> struct_schema_item_${name} = '''
