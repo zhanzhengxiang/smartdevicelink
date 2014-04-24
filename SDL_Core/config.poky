@@ -4,11 +4,9 @@ function prepare_toolchain(){
 	HOST_ARCH=`uname -m`
 	TOOLCHAIN_URL=http://downloads.yoctoproject.org/releases/yocto/yocto-1.5.1/toolchain
 	TOOLCHAIN_ARCHIVE=poky-eglibc-$HOST_ARCH-core-image-sato-armv7a-vfp-neon-toolchain-1.5.1.sh
-	if [ ! -d "/opt/poky" ]
-	then
-		curl $TOOLCHAIN_URL/$HOST_ARCH/$TOOLCHAIN_ARCHIVE
-		./$TOOLCHAIN_ARCHIVE
-	fi
+	[ -f "$TOOLCHAIN_ARCHIVE" ] || wget $TOOLCHAIN_URL/$HOST_ARCH/$TOOLCHAIN_ARCHIVE
+	chmod 755 $TOOLCHAIN_ARCHIVE
+	[ -d "/opt/poky" ] || sudo ./$TOOLCHAIN_ARCHIVE
 }
 
 function prepare_rootfs(){
@@ -31,7 +29,8 @@ function prepare_rootfs(){
 }
 
 function configure_arguments(){
-	sed "s#@sysroot@#$PWD/$ROOTFS_DIR/sysroot#g" < poky/environment.in > poky/environment
+	sed "s#@sysroot@#$PWD/$ROOTFS_DIR/sysroot#g;
+		s#@host_arch@#$HOST_ARCH#g" < poky/environment.in > poky/environment
 	MAKE_ENV=". ./poky/environment; "
 	. poky/environment
 	CMAKE_C_COMPILER=${CROSS_COMPILE}gcc
