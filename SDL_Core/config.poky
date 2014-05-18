@@ -29,6 +29,7 @@ function prepare_rootfs(){
 }
 
 function configure_arguments(){
+	HOST_ARCH=`uname -m`
 	sed "s#@sysroot@#$PWD/$ROOTFS_DIR/sysroot#g;
 		s#@host_arch@#$HOST_ARCH#g" < poky/environment.in > poky/environment
 	MAKE_ENV=". ./poky/environment; "
